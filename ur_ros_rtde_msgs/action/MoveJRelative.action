@@ -1,0 +1,9 @@
+# request
+float64[] joint_position
+float64 speed
+float64 acceleration
+---
+#result
+bool result
+---
+#feedback

@@ -1,0 +1,9 @@
+# request
+bool activated
+int32[] free_axes
+float64[] feature
+---
+# result
+bool result
+---
+# feedback

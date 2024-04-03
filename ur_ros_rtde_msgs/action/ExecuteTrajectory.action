@@ -1,0 +1,11 @@
+# request
+Vector[] trajectory
+float64 speed
+float64 acceleration
+float64 deceleration
+---
+# result
+bool result
+---
+# feedback
+

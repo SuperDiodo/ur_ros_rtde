@@ -1,0 +1,10 @@
+# request
+geometry_msgs/Point position
+geometry_msgs/Point orientation
+float64 speed
+float64 acceleration
+---
+# result
+bool result
+---
+# feedback

@@ -1,0 +1,6 @@
+# request
+---
+# result
+bool success
+string[] names
+float64[] values

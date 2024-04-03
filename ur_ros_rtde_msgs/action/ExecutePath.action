@@ -1,0 +1,12 @@
+# request
+Vector[] waypoints
+float64[] speed
+float64[] acceleration
+float64[] blend
+string[] move_type
+---
+# result
+bool result
+---
+# feedback
+

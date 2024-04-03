@@ -1,0 +1,15 @@
+# root
+ur_ros_rtde_command_script_executor
+.svn/
+.vscode/
+
+# ur_ros_rtde
+ur_ros_rtde/.svn/
+ur_ros_rtde/launch/command_server_pal1.launch.py
+ur_ros_rtde/launch/robot_state_receiver_pal1.launch.py
+ur_ros_rtde/config/camera_calibration.txt
+
+# ur_ros_rtde_msgs
+.svn/
+
+# ur_ros_rtde_simple_clients

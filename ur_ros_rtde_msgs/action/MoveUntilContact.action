@@ -1,0 +1,9 @@
+# request
+float64[] toolspeed
+float64[] direction
+float64 acceleration
+---
+# result
+bool result
+---
+# feedback

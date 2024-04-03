@@ -1,0 +1,8 @@
+# request
+float64 mass
+geometry_msgs/Point center_of_gravity
+---
+# result
+bool result
+---
+#feedback

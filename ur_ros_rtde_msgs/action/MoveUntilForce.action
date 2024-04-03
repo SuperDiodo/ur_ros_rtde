@@ -1,0 +1,12 @@
+# request
+float64[] tool_position_movement
+float64[] forces_to_consider
+float64 force_th
+float64 acceleration
+float64 speed
+float64 deceleration
+---
+# result
+bool result
+---
+# feedback

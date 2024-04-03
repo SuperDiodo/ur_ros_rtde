@@ -1,0 +1,8 @@
+# request
+int8 pin
+bool state
+---
+# result
+bool result
+---
+#feedback
