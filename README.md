@@ -102,4 +102,4 @@ The two nodes provides ROS2 services and actions which can be easily called with
 ros2 run ur_ros_rtde test_command_server
 ```
 
-Further details of our software can be found [here](https://github.com/SuperDiodo/ur_ros_rtde/blob/main/README.md).
+Further details of our software can be found [here](https://github.com/SuperDiodo/ur_ros_rtde/tree/main/ur_ros_rtde).
