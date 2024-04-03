@@ -699,6 +699,9 @@ int main(int argc, char **argv)
   params.deviation_check_freq = node->declare_parameter<int>("deviation_check_freq", 100);
   params.max_deviation = node->declare_parameter<double>("max_deviation", 0.15);
   params.parametrization_timestep = node->declare_parameter<double>("parametrization_timestep", 0.002);
+  params.grip_bool_input_register = node->declare_parameter<int>("grip_bool_input_register", 19);
+  params.desired_width_input_register = node->declare_parameter<int>("desired_width_input_register", 18);
+  params.feedback_width_output_register = node->declare_parameter<int>("feedback_width_output_register", 18);
 
   ur_rtde::RTDEControlInterface *rtde_control = new ur_rtde::RTDEControlInterface(robot_ip);
   ur_rtde::RTDEIOInterface *rtde_io = new ur_rtde::RTDEIOInterface(robot_ip);

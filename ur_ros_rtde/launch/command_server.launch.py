@@ -22,6 +22,17 @@ def generate_launch_description():
         "max_deviation" : 1.57
     }
 
+    soft_gripper_control_params = {
+        "grip_bool_input_register": 19,
+        "desired_width_input_register": 18,
+        "feedback_width_output_register": 18
+    }
+
+    vacuum_gripper_control_params = {
+        "suction_pin": 0,
+        "deposit_pin": 1
+    }
+
     ######################
     #### DO NOT TOUCH ####
 
@@ -35,7 +46,9 @@ def generate_launch_description():
             output="screen",
             parameters=[
                 command_server_params,
-                trajectory_execution_params
+                trajectory_execution_params,
+                soft_gripper_control_params,
+                vacuum_gripper_control_params
             ],
         )
     )

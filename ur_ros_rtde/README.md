@@ -1,18 +1,18 @@
 
 # Robot State Receiver
 
-**Customizable variables**:
+**Features parameters**:
+- `robot_ip`: the ip of the robot that ur_rtde will use for tcp/ip connection.
 - `robot_description_package`: ROS2 package containing the URDF of the robot.
 - `urdf_file_name`: relative path of the robot URDF in `robot_description_package` package.
 - `moveit_config_pkg`: MoveIt! ROS2 config package generated with MoveIt! setup assistant and `urdf_file_name`. (Optional)
 - `launch_moveit`: if enabled, `/launch/move_group.launch.py` launch file contained in `moveit_config_pkg` is launched.
 - `launch_rviz`: if enabled, an instance of RViz will be launched along with the robot state receiver node. If also `launch_moveit` is enabled, instead of launching an instance of RViz, `/launch/moveit_rviz.launch.py` contained in `moveit_config_pkg` is launched.
+- `simulation_only`: if enabled, fake data are made available through topics and services. It can be used to simulate a trajectory in non-realistic environment.
 
-**Data receiving parameters**:
-- `robot_ip`: the ip of the robot that ur_rtde will use for tcp/ip connection.
+**Data exchange parameters**:
 - `rtde_frequency`: frequency (hz) at which ur_rtde will work.
 - `data_receiving_frequency`: frequency (hz) at which the robot state receiver will update robot informations as the robot pose, configuration, etc. .
-- `simulation_only`: if enabled, fake data are made available through topics and services. It can be used to simulate a trajectory in non-realistic environment.
 - `simulation_start_robot_state`: if `simulation_only` it's `true`, this will be the initial robot configuration.
 - `fake_joint_states_topic`: name of the topic at which fake robot configurations should be published. Instead of publish robot configurations directly to `joint_states` topic, fake robot configurations can be published to `fake_joint_states_topic`` and real robot configurations can still be published to `real_joint_states_topic`. Using `publish_fake_joint_state_service` it is possible to change if the data to publish in `joint_states` should be taken from `fake_joint_states_topic` or `real_joint_states_topic`.
 - `real_joint_states_topic`: name of the topic at which real robot configurations must be published.
@@ -78,7 +78,7 @@ ____
 
 # Command Server
 
-**Customizable variables**:
+**Usage parameters**:
 - `robot_ip`: the ip of the robot that ur_rtde will use for tcp/ip connection.
 - `receiver_freq`: frequency (hz) at which ur_rtde receiving interface will work. In the command server the receiving interface is used to perform checks while sending commands to the robot.
 
@@ -95,19 +95,6 @@ ____
         bool state
     }
   ```
-
-- `set_deposit_command`: set state of the gripper suction
-  ```
-    {
-        bool state
-    }
-  ```
-- `set_suction_command`: set state of the gripper deposit
-  ```
-    {
-        bool state
-    }
-  ```
 - `set_payload_command`: set the payload of the robot
   ```
     {
@@ -119,6 +106,14 @@ ____
   ```
     {
         float64 speedslider
+    }
+  ```
+- `set_freedrive_command`: activate the freedrive mode of the robot. **free_axes** is an integer vector to activate or deactivate robot movements on X,Y,Z,Roll,Pitch,Yaw axes (1 is activated, 0 is deactivated).
+  ```
+    {
+        bool activated
+        int32[] free_axes
+        float64[] feature
     }
   ```
 - `reset_force_torque_sensor_command`: reset the FT sensor
@@ -211,4 +206,58 @@ ____
         float64 acceleration
         float64 deceleration
     }
+  ```
+
+  ---
+
+# External Hadrware
+
+The command server can be easily extended with special actions designed for controlling external hardware. Examples, already available in the software, are shown below.
+
+### Schmalz GCPi vacuum generator:
+
+In order to control the Schmalz GCPi vaccum generator it must be connected to the UR control box with 2 input digital pins and 2 ouput digital pins. The command server only requires to know the 2 input DIO (`command_server.launch.py` params):
+
+- `suction_pin`: digital pin to enable gripper suction,
+- `deposit_pin`: digital pin to enable gripper deposit
+
+The vacuum generator can be controlled with two specialized version of `set_digital_pin_command`:
+
+- `set_deposit_command`: set state of the gripper suction
+  ```
+    {
+        bool state
+    }
+  ```
+- `set_suction_command`: set state of the gripper deposit
+  ```
+    {
+        bool state
+    }
+  ```
+
+
+### OnRobot Soft Gripper (SG):
+
+In order to control the OnRobot SG it is mandatory to:
+1. Install the OnRobot URCap provided witht the gripper.
+2. Copy `sg_control.urp` from the config folder to the robot.
+
+The command server will exchange the data writing and reading control the following box registers (`command_server.launch.py` params):
+
+- `grip_bool_input_register`: input register at which the robot expects to get the open/close signal.
+- `desired_width_input_register`: input register at which the robot expects to get the desired width.
+- `feedback_width_output_register`: output register at which the robot expects to get the width of the gripper after the action.
+
+The SG can be controlled with:
+- `soft_gripper_control_command`: if **grip** is `false` then the gripper will close until **target_width** is reached, otherwise it will open. If the action can't be execute withing a time limit the action will exit. In **error** will be store the difference between the desired and the actual width of the SG. 
+  ```
+  {
+        #request
+        int16 target_width
+        bool grip
+        ---
+        #result
+        int16 error
+  }
   ```
