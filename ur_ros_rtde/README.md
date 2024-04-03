@@ -38,45 +38,45 @@
 
 **Service list**:
 - `GetInternalState`: retrieve the digital I/O pins state, the speed slider value and the actual robot payload
-  ```
+  ```python
   # request
   ---
   # result
+    bool[] digital_input_state
+    bool[] digital_output_state
+    float64 speed_slider_value
+    float64 payload_value
   ...
-  bool[] digital_input_state
-  bool[] digital_output_state
-  float64 speed_slider_value
-  float64 payload_value
   ```
 - `GeRobotConfiguration`: retrieve the joint positions and their names
-  ```
+  ```python
   # request
   ---
   # result
+    string[] names
+    float64[] values
   ...
-  string[] names
-  float64[] values
   ```
 - `GetTcpPose`: retrieve the actual TCP pose in the robot reference system
-  ```
+  ```python
   # request
   ---
   # result
+    geometry_msgs/Pose pose
   ...
-  geometry_msgs/Pose pose
   ```
 - `GetWrench`: get the actual wrench (force, torque) from the FT sensor in the TCP reference system
-  ```
+  ```python
   # request
   ---
   # result
+    geometry_msgs/Wrench wrench
   ...
-  geometry_msgs/Wrench wrench
   ```
 - `publish_fake_joint_states`: it is a `std_srvs/srv/SetBool` service. If `true` is sent then `/joint_states` will be updated with the information from `fake_joint_states_topic` (e.g. `/fake_joint_states`). Otherwise, information from `real_joint_states_topic` (e.g. `/real_joint_states`) will be used. This service can be called to stop the transmission of real data and test simulated trajectories before moving the real robot.
-  ```
+  ```python
   # request
-  bool data
+    bool data
   ---
   # result
   ...
