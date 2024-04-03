@@ -10,20 +10,21 @@ If you have any thoughts or feedback about the software, feel free to contact us
 
 ## Capabilities of `ur_ros_rtde`
 
-- Display robot in a 3D visualizer (RViz)
+- Display 3D robot (RViz)
 - Receive data (joints positions, force, torque, etc.)
 - Set robot internal parameters (e.g. payload)
-- Set and read pins state
+- Read and Write UR control box digital pins
 - Execute MovePath, MoveJ and MoveL commands
 - Execute MoveL commands until a contact is detected
 - Execute MoveL commands until the force read by the force torque sensor is above a threshold
 - Execute MoveL commands until the torque read by the force torque sensor is above a threshold
-- Send and execute trajectories described in the robot configuration state space (e.g. trajectories planned with MoveIt!)
+- Send and execute trajectories int the joint state space (e.g. trajectories planned with MoveIt!)
+- Control a Schmalz GCPi vacuum gripper
+- Control an OnRobot Soft Gripper (SG)
 
 It can be used with real and simulated robots.
 
-In the future new features will be added and the existings will be updated!
-
+In the future, new features will be added, and the existing ones will be updated!
 
 ---
 ## Setup `ur_ros_rtde`
@@ -101,4 +102,4 @@ The two nodes provides ROS2 services and actions which can be easily called with
 ros2 run ur_ros_rtde test_command_server
 ```
 
-Further details of our software can be found [here](ur_ros_rtde/readme.md).
+Further details of our software can be found [here](https://github.com/SuperDiodo/ur_ros_rtde/blob/main/README.md).
