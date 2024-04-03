@@ -14,7 +14,7 @@
 - `rtde_frequency`: frequency (hz) at which ur_rtde will work.
 - `data_receiving_frequency`: frequency (hz) at which the robot state receiver will update robot informations as the robot pose, configuration, etc. .
 - `simulation_start_robot_state`: if `simulation_only` it's `true`, this will be the initial robot configuration.
-- `fake_joint_states_topic`: name of the topic at which fake robot configurations should be published. Instead of publish robot configurations directly to `joint_states` topic, fake robot configurations can be published to `fake_joint_states_topic`` and real robot configurations can still be published to `real_joint_states_topic`. Using `publish_fake_joint_state_service` it is possible to change if the data to publish in `joint_states` should be taken from `fake_joint_states_topic` or `real_joint_states_topic`.
+- `fake_joint_states_topic`: name of the topic at which fake robot configurations should be published. Instead of publish robot configurations directly to `joint_states` topic, fake robot configurations can be published to `fake_joint_states_topic` and real robot configurations can still be published to `real_joint_states_topic`. Using `publish_fake_joint_state_service` it is possible to change if the data to publish in `joint_states` should be taken from `fake_joint_states_topic` or `real_joint_states_topic`.
 - `real_joint_states_topic`: name of the topic at which real robot configurations must be published.
 - `wrench_topic`: name of the topic at which wrench, in the flange reference system, must be published.
 - `publish_force_sensor_markers`: if enabled arrow markers related to the force read by FT sensor will be published in `visualization_marker` topic.
@@ -42,7 +42,7 @@
   # request
   ---
   # result
-  bool success
+  ...
   bool[] digital_input_state
   bool[] digital_output_state
   float64 speed_slider_value
@@ -53,7 +53,7 @@
   # request
   ---
   # result
-  bool success
+  ...
   string[] names
   float64[] values
   ```
@@ -62,7 +62,7 @@
   # request
   ---
   # result
-  bool success
+  ...
   geometry_msgs/Pose pose
   ```
 - `GetWrench`: get the actual wrench (force, torque) from the FT sensor in the TCP reference system
@@ -70,8 +70,16 @@
   # request
   ---
   # result
-  bool success
+  ...
   geometry_msgs/Wrench wrench
+  ```
+- `publish_fake_joint_states`: it is a `std_srvs/srv/SetBool` service. If `true` is sent then `/joint_states` will be updated with the information from `fake_joint_states_topic` (e.g. `/fake_joint_states`). Otherwise, information from `real_joint_states_topic` (e.g. `/real_joint_states`) will be used. This service can be called to stop the transmission of real data and test simulated trajectories before moving the real robot.
+  ```
+  # request
+  bool data
+  ---
+  # result
+  ...
   ```
 
 ____
@@ -88,124 +96,170 @@ ____
 - `max_deviation`: maximum possible deviation (rad) between the actual and the desired robot configurations. If the devition is greater than this param then the trajectory execution is stopped.
 
 **Action servers list**:
+
+Most of the actions are composed of just `request` field. In future `result` and `feedback` part will be also used.
+
 - `set_digital_pin_command`: set a digital output pin to a specific state
-  ```
-    {
+  ```python
+    # request
         int8 pin
         bool state
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `set_payload_command`: set the payload of the robot
   ```
-    {
+    #request
         float64 mass
         geometry_msgs/Point center_of_gravity
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `set_speed_slider_command`: set the speed slider value of the teach pendant
-  ```
-    {
+  ```python
+    #request
         float64 speedslider
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `set_freedrive_command`: activate the freedrive mode of the robot. **free_axes** is an integer vector to activate or deactivate robot movements on X,Y,Z,Roll,Pitch,Yaw axes (1 is activated, 0 is deactivated).
-  ```
-    {
+  ```python
+    #request
         bool activated
         int32[] free_axes
         float64[] feature
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `reset_force_torque_sensor_command`: reset the FT sensor
-  ```
-    {
-    }
+  ```python
+    #request
+    ...
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `move_l_command`: move the robot with linear movements in the tool-space
-  ```
-    {
+  ```python
+    #request
         geometry_msgs/Point position
         geometry_msgs/Point orientation
         float64 speed
         float64 acceleration
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `move_j_command`: move the robot with linear movements in the joint-space
-  ```
-    {
+  ```python
+    #request
         float64[] joint_position
         float64 speed
         float64 acceleration
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `move_l_relative_command`: relative movement, linear in the tool-space, of the robot with respect to the actual pose
-  ```
-    {
+  ```python
+    #request
         geometry_msgs/Point position
         geometry_msgs/Point orientation
         float64 speed
         float64 acceleration
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `move_j_relative_command`: relative movement, linear in the joint-space, of the robot with respect to the actual configuration
-  ```
-    {
+  ```python
+    #request
         float64[] joint_position
         float64 speed
         float64 acceleration
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `move_until_contact_command`: move the TCP along a given direction until a contact is detected and then retract the robot at the last non-colliding configuration. It is possible to define a **direction** of the contact to detect. If direction is set to all -1 values all possible contacts are detected. 
-  ```
-    {
+  ```python
+    #request
         float64[] toolspeed
         float64[] direction
         float64 acceleration
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `move_until_force_command`: move the TCP given XYZ offset until a force is detected. It is possible to define a **direction** of the force and a minimum value.
-  ```
-    {
+  ```python
+    #request
         float64[] tool_position_movement
         float64[] forces_to_consider
         float64 force_th
         float64 acceleration
         float64 speed
         float64 deceleration
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `move_until_torque_command`: move the TCP given XYZ offset until a torque is detected. It is possible to define a **direction** of the torque and a minimum value.
-  ```
-    {
+  ```python
+    #request
         float64[] tool_position_movement
         float64[] torques_to_consider
         float64 torque_th
         float64 acceleration
         float64 speed
         float64 deceleration
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 
 - `execute_path_command`: execute a path composed of several waypoints. Each waypoint can be a MoveL (l or L) or MoveJ (j or J) movement. When passing multiple waypoint of the same type it is possible to use the **blend** values (see *Blend Radii* in this [guide](https://www.universal-robots.com/articles/ur/robot-care-maintenance/important-deployment-points/)). They allows to smooth the transition between two MoveX movements.
 
-  ```
-    {
+  ```python
+    #request
         Vector[] waypoints
         float64[] speed
         float64[] acceleration
         float64[] blend
         string[] move_type
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 
 - `execute_trajectory_command`: execute a trajectory composed of at least two robot configurations. The robot will perform a first `move_l` towards the first robot configuration and then start the execution. Deceleration is used to stop at the end of trajectory. Acceleration and speed parameters are used to estimate a speed profile of the robot and interpolate waypoints.
-  ```
-    {
+  ```python
+    #request
         Vector[] trajectory
         float64 speed
         float64 acceleration
         float64 deceleration
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 
   ---
@@ -224,16 +278,22 @@ In order to control the Schmalz GCPi vaccum generator it must be connected to th
 The vacuum generator can be controlled with two specialized version of `set_digital_pin_command`:
 
 - `set_deposit_command`: set state of the gripper suction
-  ```
-    {
+  ```python
+    #request
         bool state
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 - `set_suction_command`: set state of the gripper deposit
-  ```
-    {
+  ```python
+    #request
         bool state
-    }
+    # result
+    ...
+    # feedback
+    ...
   ```
 
 
@@ -251,13 +311,14 @@ The command server will exchange the data writing and reading control the follow
 
 The SG can be controlled with:
 - `soft_gripper_control_command`: if **grip** is `false` then the gripper will close until **target_width** is reached, otherwise it will open. If the action can't be execute withing a time limit the action will exit. In **error** will be store the difference between the desired and the actual width of the SG. 
-  ```
-  {
-        #request
-        int16 target_width
-        bool grip
-        ---
-        #result
-        int16 error
-  }
+  ```python
+    #request
+      int16 target_width
+      bool grip
+    ---
+    #result
+      int16 error
+    # feedback
+    ...
+  
   ```
