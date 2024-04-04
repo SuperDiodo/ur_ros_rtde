@@ -1,3 +1,5 @@
+<meta name="google-site-verification" content="zum2DTM9kSrJes8R3fVaP2TTajfUmZpDmOmBnUWFF1I" />
+
 # ROS2 Interface for Universal Robot CoBots Control with ur_rtde
 
 
