@@ -8,6 +8,7 @@ key.txt
 ur_ros_rtde/.svn/
 ur_ros_rtde/launch/command_server_pal1.launch.py
 ur_ros_rtde/launch/robot_state_receiver_pal1.launch.py
+ur_ros_rtde/robot_state_receiver_test.launch
 ur_ros_rtde/config/camera_calibration.txt
 
 # ur_ros_rtde_msgs
