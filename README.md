@@ -1,6 +1,12 @@
 # ROS2 Interface for Universal Robot CoBots Control with ur_rtde
 
-ROS2 interfaces based on [ur_rtde](https://gitlab.com/sdurobotics/ur_rtde) for communication with **Universal Robot collaborative manipulators** developed within [RIMLab](https://rimlab.ce.unipr.it/), the robotic laboratory of the University of Parma. 
+ROS2 interfaces based on [ur_rtde](https://gitlab.com/sdurobotics/ur_rtde) for communication with **Universal Robot collaborative manipulators**. 
+The software was developed within [RIMLab](https://rimlab.ce.unipr.it/), the robotic laboratory of the University of Parma. 
+
+<p align="center">
+  <img src="images/logo_rimlab.PNG">
+</p>
+
 
 This project is currently under development, with ongoing updates and enhancements planned for the future. If you have any thoughts or feedback about the software, feel free to contact us at alessio.saccuti@unipr.it.
 
@@ -16,6 +22,10 @@ This project is currently under development, with ongoing updates and enhancemen
 - Execution of MoveL commands until force or torque exceeds predefined thresholds.
 - Sending and executing trajectories in the joint state space (e.g., trajectories planned with MoveIt!).
 - Control of Schmalz GCPi vacuum gripper and OnRobot Soft Gripper (SG).
+
+<p align="center">
+  <img src="images/dual.gif">
+</p>
 
 It can be used with real and simulated robots.
 
