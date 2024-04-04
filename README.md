@@ -32,7 +32,7 @@ This project is currently under development, with ongoing updates and enhancemen
 ---
 
 ## Contents of `ur_ros_rtde`
-- `ur_ros_rtde`: the core of our software.
+- `ur_ros_rtde`: the core of our software, ROS2 nodes which provides messages on topics, services and actions.
 - `ur_ros_rtde_msgs`: messages, services and actions definitions.
 - `ur_ros_rtde_simple_clients`: utility header files for services and actions.
 - `simple_ur10e_description`: example of description package containing meshes, xacro and urdf files. The package is a simplified version of [this repository](https://github.com/UniversalRobots/Universal_Robots_ROS2_Description), but specific for UR10e.
