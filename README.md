@@ -1,4 +1,4 @@
-# Universal Robot ROS2 driver based on ur_rtde
+# ROS2 interface for ur_rtde
 
 ROS2 interfaces based on [ur_rtde](https://gitlab.com/sdurobotics/ur_rtde) for communication with **Universal Robot collaborative manipulators**.
 
@@ -9,18 +9,15 @@ If you have any thoughts or feedback about the software, feel free to contact us
 ---
 
 ## Capabilities of `ur_ros_rtde`
-
-- Display 3D robot (RViz)
-- Receive data (joints positions, force, torque, etc.)
-- Set robot internal parameters (e.g. payload)
-- Read and Write UR control box digital pins
-- Execute MovePath, MoveJ and MoveL commands
-- Execute MoveL commands until a contact is detected
-- Execute MoveL commands until the force read by the force torque sensor is above a threshold
-- Execute MoveL commands until the torque read by the force torque sensor is above a threshold
-- Send and execute trajectories int the joint state space (e.g. trajectories planned with MoveIt!)
-- Control a Schmalz GCPi vacuum gripper
-- Control an OnRobot Soft Gripper (SG)
+- Visualization of the 3D robot in RViz.
+- Reception of various data including joint positions, force, torque, etc.
+- Configuration of internal robot parameters such as payload.
+- UR control box digital pin reading and writing.
+- Execution of MovePath, MoveJ, and MoveL commands.
+- Execution of MoveL commands until contact is detected.
+- Execution of MoveL commands until force or torque exceeds predefined thresholds.
+- Sending and executing trajectories in the joint state space (e.g., trajectories planned with MoveIt!).
+- Control of Schmalz GCPi vacuum gripper and OnRobot Soft Gripper (SG).
 
 It can be used with real and simulated robots.
 
@@ -29,11 +26,16 @@ In the future, new features will be added, and the existing ones will be updated
 ---
 ## Setup `ur_ros_rtde`
 
-Our software requires to install `ur_rtde` and `ROS2`.
+To utilize our software, you need to install `ur_rtde` and `ROS2`.
 
 ### Install `ur_rtde`:
 
-  It can be installed with `pip3 install ur_rtde`, or it can be manually built:
+  You can install `ur_rtde` via `pip` by running: 
+  ```bash
+  pip3 install ur_rtde
+  ```
+
+  Alternatively, you can manually build it:
 
   ```bash
   git clone https://gitlab.com/sdurobotics/ur_rtde.git
@@ -48,9 +50,9 @@ Our software requires to install `ur_rtde` and `ROS2`.
 
 ### Install Robot Operating System 2 (`ROS2`)
 
-We suggest to install `ROS2 humble` using the official [guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html).
+We recommend installing ROS2 **humble** using the official [guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html).
 
-In addition please install:
+Additionally, install the following packages:
   ```bash
   sudo apt install python3-colcon-common-extensions
   sudo apt-get install ros-humble-controller-manager
@@ -84,22 +86,22 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --package
 ---
 ## How to use `ur_ros_rtde`
 
-The driver is composed of two ROS2 nodes that can be executed. Examples of ROS2 launch files were provided:
+Our software is composed of two ROS2 nodes:
 
-- `robot_state_receiver`: makes data from the robot available through topics and services.
+- `robot_state_receiver`: provides robot data through topics and services.
   ```
   ros2 launch ur_ros_rtde robot_state_receiver.launch.py
   ```
 
-- `command_server` makes available a list of ROS2 action servers, which can be used to control the robot.
+- `command_server` offers ROS2 action servers for robot control.
   ```
   ros2 launch ur_ros_rtde command_server.launch.py
   ```
 
-The two nodes provides ROS2 services and actions which can be easily called with the header files in `ur_ros_rtde_simple_clients`. Examples of data receiving and robot movements can be seen in `src/test/test_command_server.cpp`, which can be launched with:
+You can easily interact with ROS2 services and actions using header files provided in `ur_ros_rtde_simple_clients`. Example code for data reception and robot movements can be found in `src/test/test_command_server.cpp`, which can be launched with:
 
 ```
 ros2 run ur_ros_rtde test_command_server
 ```
 
-Further details of our software can be found [here](https://github.com/SuperDiodo/ur_ros_rtde/tree/main/ur_ros_rtde).
+For further details and documentation, please visit [`ur_ros_rtde`](https://github.com/SuperDiodo/ur_ros_rtde/tree/main/ur_ros_rtde).
