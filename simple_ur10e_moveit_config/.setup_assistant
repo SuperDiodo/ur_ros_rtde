@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: simple_ur10e_description
+    relative_path: urdf/ur10e.urdf
+  srdf:
+    relative_path: config/ur10e.srdf
+  package_settings:
+    author_name: Alessio Saccuti
+    author_email: alessio.saccuti@unipr.it
+    generated_timestamp: 1712218518
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
