@@ -17,7 +17,6 @@
 - `fake_joint_states_topic`: name of the topic at which fake robot configurations should be published. Instead of publish robot configurations directly to `joint_states` topic, fake robot configurations can be published to `fake_joint_states_topic` and real robot configurations can still be published to `real_joint_states_topic`. Using `publish_fake_joint_state_service` it is possible to change if the data to publish in `joint_states` should be taken from `fake_joint_states_topic` or `real_joint_states_topic`.
 - `real_joint_states_topic`: name of the topic at which real robot configurations must be published.
 - `wrench_topic`: name of the topic at which wrench, in the flange reference system, must be published.
-- `publish_force_sensor_markers`: if enabled arrow markers related to the force read by FT sensor will be published in `visualization_marker` topic.
 
 **Robot configuration params**:
 - `robot_joint_names`: names of the robot joints.
@@ -73,7 +72,7 @@
     geometry_msgs/Wrench wrench
   ...
   ```
-- `publish_fake_joint_states`: it is a `std_srvs/srv/SetBool` service. If `true` is sent then `/joint_states` will be updated with the information from `fake_joint_states_topic` (e.g. `/fake_joint_states`). Otherwise, information from `real_joint_states_topic` (e.g. `/real_joint_states`) will be used. This service can be called to stop the transmission of real data and test simulated trajectories before moving the real robot.
+- `PublishFakeJointStates`: it is a `std_srvs/srv/SetBool` service. If `true` is sent then `/joint_states` will be updated with the information from `fake_joint_states_topic` (e.g. `/fake_joint_states`). Otherwise, information from `real_joint_states_topic` (e.g. `/real_joint_states`) will be used. This service can be called to stop the transmission of real data and test simulated trajectories before moving the real robot.
   ```python
   # request
     bool data

@@ -72,7 +72,7 @@ Additionally, install the following packages:
 ### Setup ROS2 interfaces
 ```bash
 # clone ur_ros_rtde repository
-git clone this_repo
+git clone https://github.com/SuperDiodo/ur_ros_rtde.git
 
 # build ur_ros_rtde_msgs
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_msgs
@@ -82,26 +82,61 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --package
 
 # build ur_ros_rtde
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde
+
+(Optional)
+
+# build simple_ur10e_description, i.e. ur10e meshes and xacro files
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select simple_ur10e_description
+
+# build simple_ur10e_moveit_config, i.e. configuration pkg for MoveIt!
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select simple_ur10e_moveit_config
 ```
 ---
 ## How to use `ur_ros_rtde`
 
 Our software is composed of two ROS2 nodes:
 
-- `robot_state_receiver`: provides robot data through topics and services.
-  ```
-  ros2 launch ur_ros_rtde robot_state_receiver.launch.py
-  ```
+**robot_state_receiver**: provides robot data through topics and services (reference launch file: `robot_state_receiver.launch.py`).
 
-- `command_server` offers ROS2 action servers for robot control.
-  ```
-  ros2 launch ur_ros_rtde command_server.launch.py
-  ```
+**command_server**: offers ROS2 action servers for robot control (reference launch file: `command_server.launch.py`)
 
-You can easily interact with ROS2 services and actions using header files provided in `ur_ros_rtde_simple_clients`. Example code for data reception and robot movements can be found in `src/test/test_command_server.cpp`, which can be launched with:
-
-```
-ros2 run ur_ros_rtde test_command_server
-```
-
+You can easily interact with ROS2 services and actions using header files provided in `ur_ros_rtde_simple_clients`.
 For further details and documentation, please visit [`ur_ros_rtde`](https://github.com/SuperDiodo/ur_ros_rtde/tree/main/ur_ros_rtde).
+
+
+Test if everything is working:
+
+1. make sure `simple_ur10e_description` is compiled and generate UR10e urdf file from xacro files
+    ```bash
+    # generate ur10e urdf
+    cd ~/your_path/simple_ur10e_description/urdf
+    sh generate_urdf.sh ur10e.xacro ur10e.urdf
+    ```
+
+2. Configure `robot_state_receiver.launch.py`:
+    - set ip address with `robot_ip`
+    - set `robot_description_package = "simple_ur10e_description"`
+    - set `urdf_file_name = "urdf/ur10e.urdf"`
+    - (optional) set `launch_rviz = True` if robot should be displayed in RViz
+
+3. Launch **robot_state_receiver**:
+    ```bash
+    # type in a new terminal
+    ros2 launch ur_ros_rtde robot_state_receiver_example.launch.py
+    ```
+4. Configure `command_server.launch.py` setting ip address with `robot_ip`
+5. Launch **command_server**:
+    ```bash
+    # type in a new terminal
+    ros2 launch ur_ros_rtde command_server.launch.py
+    ```
+6. Run test:
+
+    **WARNING**! If everything was successfully configured the robot will start moving!
+
+    Send to the robot MoveL commands with respect to the actual pose. It will move +10 cm on X axis, then -20 cm on X axis and finally +10 on X axis again. After each movement the actual pose will be printed in output.
+
+    ```bash
+    # type in a new terminal
+    ros2 run ur_ros_rtde test_command_server
+    ```

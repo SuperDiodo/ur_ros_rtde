@@ -56,13 +56,6 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
         param_string = node_->declare_parameter<std::string>("wrench_topic", "/wrench");
         force_sensor_pub_ = node_->create_publisher<WrenchMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
         RCLCPP_INFO(node->get_logger(), "Created wrench publisher..");
-
-        publish_force_sensor_markers_ = node_->declare_parameter<bool>("publish_force_sensor_markers", false);
-        if (publish_force_sensor_markers_)
-        {
-            marker_pub_ = node_->create_publisher<MarkerMsg>("/visualization_marker", RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
-            RCLCPP_INFO(node->get_logger(), "Created force sensor markers publisher..");
-        }
     }
     else
     {
@@ -303,10 +296,6 @@ void robot_state_receiver::timer_callback()
         wrench_->wrench.torque.z = torques.z();
 
         force_sensor_pub_->publish(*wrench_);
-        if (publish_force_sensor_markers_)
-        {
-            publish_wrench_markers(*wrench_);
-        }
     }
 
     // publish calibrated camera tf
@@ -399,89 +388,6 @@ void robot_state_receiver::get_robot_configuration_cb(const std::shared_ptr<Robo
     response->names = robot_configuration_->name;
     response->values = robot_configuration_->position;
     response->success = true;
-}
-
-void robot_state_receiver::publish_wrench_markers(const WrenchMsg &wrench)
-{
-
-    Eigen::Vector3d tcp_offset;
-
-    try
-    {
-        auto transform = tf_buffer_->lookupTransform(
-            robot_base_link, robot_flange_link,
-            tf2::TimePointZero);
-
-        tcp_offset.x() = tcp_pose_->position.x - transform.transform.translation.x;
-        tcp_offset.y() = tcp_pose_->position.y - transform.transform.translation.y;
-        tcp_offset.z() = tcp_pose_->position.z - transform.transform.translation.z;
-    }
-    catch (const tf2::TransformException &ex)
-    {
-        return;
-    }
-
-    std::vector<Eigen::Quaterniond> force_marker_quats;
-    {
-
-        // Arrow is oriented towards X, rotate it to point Z axis
-        force_marker_quats.push_back(Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ()) *
-                                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY()) *
-                                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitX()));
-
-        force_marker_quats.push_back(Eigen::AngleAxisd(M_PI_2, Eigen::Vector3d::UnitZ()) *
-                                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY()) *
-                                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitX()));
-
-        force_marker_quats.push_back(Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ()) *
-                                     Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitY()) *
-                                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitX()));
-    }
-
-    std_msgs::msg::ColorRGBA red, blue, green;
-    red.r = 1.0;
-    red.g = 0.0;
-    red.b = 0.0;
-    red.a = 1.0;
-    blue.r = 0.0;
-    blue.g = 0.0;
-    blue.b = 1.0;
-    blue.a = 1.0;
-    green.r = 0.0;
-    green.g = 1.0;
-    green.b = 0.0;
-    green.a = 1.0;
-
-    std::vector<std_msgs::msg::ColorRGBA> colors = {red, green, blue};
-
-    std::vector<double> forces = {wrench.wrench.force.x, wrench.wrench.force.y, wrench.wrench.force.z};
-
-    for (size_t i = 0; i < force_marker_quats.size(); i++)
-    {
-
-        visualization_msgs::msg::Marker marker;
-        {
-            marker.header.frame_id = robot_flange_link;
-            marker.header.stamp = node_->now();
-            marker.ns = "flange_forces";
-            marker.id = i;
-            marker.type = visualization_msgs::msg::Marker::ARROW;
-            marker.action = visualization_msgs::msg::Marker::ADD;
-            marker.pose.position.x = tcp_offset.x();
-            marker.pose.position.y = tcp_offset.y();
-            marker.pose.position.z = tcp_offset.z();
-            marker.pose.orientation.x = force_marker_quats[i].x();
-            marker.pose.orientation.y = force_marker_quats[i].y();
-            marker.pose.orientation.z = force_marker_quats[i].z();
-            marker.pose.orientation.w = force_marker_quats[i].w();
-            marker.scale.x = forces[i] / 100.0;
-            marker.scale.y = 0.02;
-            marker.scale.z = 0.02;
-            marker.color = colors[i];
-        }
-
-        marker_pub_->publish(marker);
-    }
 }
 
 int main(int argc, char **argv)

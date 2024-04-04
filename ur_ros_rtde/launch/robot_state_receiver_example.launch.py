@@ -9,27 +9,27 @@ def generate_launch_description():
     ######################
     #### CHANGE HERE #####
 
-    robot_ip = ""  # robot ip, example 127.0.0.1
-    robot_description_package = "" # ros2 pkg containing 3D files of the robot (example: ur10e_description)
-    urdf_file_name = "" # urdf of the robot (example: urdf/ur10e.urdf)
+    robot_ip = "160.78.27.23"  # robot ip, example 127.0.0.1
+    robot_description_package = "simple_ur10e_description" # ros2 pkg containing 3D files of the robot (example: ur10e_description)
+    urdf_file_name = 'urdf/ur10e.urdf' # urdf of the robot (example: urdf/ur10e.urdf)
     moveit_config_pkg = "" # moveit_config pkg to use (example: ur10e_moveit_config)
-    launch_rviz = False
-    launch_moveit = False
+    launch_moveit = False # launch MoveIt!
+    launch_rviz = True # launch RViz
     
     # use the driver in simulated mode:
     # -	no robot required
     # -	fake joint states, no force/torque data
-    simulation_only = False
+    simulation_only = True
     
     robot_state_receiver_params = {
-        "robot_ip": robot_ip,
-        "rtde_frequency": 20.0, # freq. (Hz) at which ur_rtde receiver interface will exchange data
+        "robot_ip": robot_ip, # robot ip 
+        "rtde_frequency": 100.0, # freq. (Hz) at which ur_rtde receiver interface will exchange data
         "data_receiving_frequency": 100, # freq. (Hz) at which data is received from robot and published in topics
-        "simulation_only": simulation_only, 
+        "simulation_only": simulation_only, # use simulated joint states only
         "simulation_start_robot_state": [-1.82,-1.57,1.77,-1.77,-1.57,-0.25], # starting robot configurations for simulation only
         "fake_joint_states_topic": "/fake_joint_states", # topic at which simulated robot configuration should be published
         "real_joint_states_topic": "/real_joint_states", # topic at which real robot configuration are published
-        "wrench_topic": "/wrench", # topic at which wrenches are published  
+        "wrench_topic": "/wrench", # topic at which wrenches are published
     }
 
     robot_configuration_params = {
