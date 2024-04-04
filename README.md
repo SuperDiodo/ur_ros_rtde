@@ -2,8 +2,8 @@
 
 
 <div style="display: flex; justify-content: center;">
-    <img src="https://github.com/SuperDiodo/ur_ros_rtde/tree/main/images/logo_rimlab.PNG" alt="Image 1" style="width: 40%; margin-right: 25px;">
-    <img src="https://github.com/SuperDiodo/ur_ros_rtde/tree/main/images/logo_repo.jpg" alt="Image 2" style="width: 40%; margin-left: 25px;">
+    <img src="images/logo_rimlab.PNG" alt="Image 1" style="width: 40%; margin-right: 25px;">
+    <img src="images/logo_repo.jpg" alt="Image 2" style="width: 40%; margin-left: 25px;">
 </div>
 
 </br>
