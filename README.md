@@ -13,7 +13,6 @@ This project is currently under development, with ongoing updates and enhancemen
 ---
 
 ## Capabilities of `ur_ros_rtde`
-- Visualization of the 3D robot in RViz.
 - Reception of various data including joint positions, force, torque, etc.
 - Configuration of internal robot parameters such as payload.
 - UR control box digital pin reading and writing.
@@ -22,14 +21,12 @@ This project is currently under development, with ongoing updates and enhancemen
 - Execution of MoveL commands until force or torque exceeds predefined thresholds.
 - Sending and executing trajectories in the joint state space (e.g., trajectories planned with MoveIt!).
 - Control of Schmalz GCPi vacuum gripper and OnRobot Soft Gripper (SG).
+- Usage of ROS2 intefaces even without real hardware, e.g. evaluation of trajectories in simulation.
+- Visualization of the 3D robot in RViz.
 
 <p align="center">
   <img src="images/dual.gif">
 </p>
-
-It can be used with real and simulated robots.
-
-In the future, new features will be added, and the existing ones will be updated!
 
 ---
 
