@@ -22,6 +22,7 @@ This project is currently under development, with ongoing updates and enhancemen
 - Sending and executing trajectories in the joint state space (e.g., trajectories planned with MoveIt!).
 - Control of Schmalz GCPi vacuum gripper and OnRobot Soft Gripper (SG).
 - Possibility of using ROS2 interfaces in simulated environments, even in the absence of physical hardware (e.g., trajectory evaluation).
+- Possibility of using ROS2 interfaces along with MoveIt! configuration packages.
 - Visualization of the 3D robot in RViz.
 
 <p align="center">
