@@ -1,12 +1,15 @@
 # ROS2 Interface for Universal Robot CoBots Control with ur_rtde
 
+
+<div style="display: flex; justify-content: center;">
+    <img src="https://github.com/SuperDiodo/ur_ros_rtde/tree/main/images/logo_rimlab.PNG" alt="Image 1" style="width: 40%; margin-right: 25px;">
+    <img src="https://github.com/SuperDiodo/ur_ros_rtde/tree/main/images/logo_repo.jpg" alt="Image 2" style="width: 40%; margin-left: 25px;">
+</div>
+
+</br>
+
 ROS2 interfaces based on [ur_rtde](https://gitlab.com/sdurobotics/ur_rtde) for communication with **Universal Robot collaborative manipulators**. 
 The software was developed within [RIMLab](https://rimlab.ce.unipr.it/), the robotic laboratory of the University of Parma. 
-
-<p align="center">
-  <img src="images/logo_rimlab.PNG">
-</p>
-
 
 This project is currently under development, with ongoing updates and enhancements planned for the future. If you have any thoughts or feedback about the software, feel free to contact us at alessio.saccuti@unipr.it.
 
