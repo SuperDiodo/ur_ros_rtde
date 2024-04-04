@@ -263,7 +263,7 @@ Most of the actions are composed of just `request` field. In future `result` and
 
   ---
 
-# External Hadrware
+# External Hardware
 
 The command server can be easily extended with special actions designed for controlling external hardware. Examples, already available in the software, are shown below.
 

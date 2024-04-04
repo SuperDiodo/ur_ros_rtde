@@ -22,6 +22,15 @@ It can be used with real and simulated robots.
 In the future, new features will be added, and the existing ones will be updated!
 
 ---
+
+## Contents of `ur_ros_rtde`
+- `ur_ros_rtde`: the core of our software.
+- `ur_ros_rtde_msgs`: messages, services and actions definitions.
+- `ur_ros_rtde_simple_clients`: utility header files for services and actions.
+- `simple_ur10e_description`: example of description package containing meshes, xacro and urdf files. The package is a simplified version of [this repository](https://github.com/UniversalRobots/Universal_Robots_ROS2_Description), but specific for UR10e.
+- `simple_ur10e_moveit_config`: example of MoveIt! configuration package generated with `moveit_setup_assistant`.
+
+---
 ## Setup `ur_ros_rtde`
 
 To utilize our software, you need to install `ur_rtde` and `ROS2`.
@@ -104,7 +113,7 @@ For further details and documentation, please visit [`ur_ros_rtde`](https://gith
 
 Test if everything is working:
 
-1. Ensure that `simple_ur10e_description` is compiled and then generate UR10e urdf file from xacro files
+1. Ensure that `simple_ur10e_description` is compiled and then generate UR10e urdf file from xacro files.
     ```bash
     # generate ur10e urdf
     cd ~/your_path/simple_ur10e_description/urdf
