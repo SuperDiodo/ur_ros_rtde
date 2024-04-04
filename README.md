@@ -21,7 +21,7 @@ This project is currently under development, with ongoing updates and enhancemen
 - Execution of MoveL commands until force or torque exceeds predefined thresholds.
 - Sending and executing trajectories in the joint state space (e.g., trajectories planned with MoveIt!).
 - Control of Schmalz GCPi vacuum gripper and OnRobot Soft Gripper (SG).
-- Usage of ROS2 intefaces even without real hardware, e.g. evaluation of trajectories in simulation.
+- Possibility of using ROS2 interfaces in simulated environments, even in the absence of physical hardware (e.g., trajectory evaluation).
 - Visualization of the 3D robot in RViz.
 
 <p align="center">
