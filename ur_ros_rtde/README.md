@@ -300,8 +300,8 @@ The vacuum generator can be controlled with two specialized version of `set_digi
 ### OnRobot Soft Gripper (SG):
 
 In order to control the OnRobot SG it is mandatory to:
-1. Install the OnRobot URCap provided witht the gripper.
-2. Copy `sg_control.urp` from the config folder to the robot.
+1. Install the OnRobot URCap available with the gripper.
+2. Copy `sg_control_program.urp` from the config folder to the robot.
 
 The command server will exchange the data writing and reading control the following box registers (`command_server.launch.py` params):
 
