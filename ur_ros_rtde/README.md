@@ -2,7 +2,7 @@
 # Robot State Receiver
 
 **Features parameters**:
-- `robot_ip`: the ip of the robot that ur_rtde will use for tcp/ip connection.
+- `robot_ip`: the ip address that ur_rtde will use for tcp/ip connection.
 - `robot_description_package`: ROS2 package containing the URDF of the robot.
 - `urdf_file_name`: relative path of the robot URDF in `robot_description_package` package.
 - `moveit_config_pkg`: MoveIt! ROS2 config package generated with MoveIt! setup assistant and `urdf_file_name`. (Optional)

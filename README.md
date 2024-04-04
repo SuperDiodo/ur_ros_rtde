@@ -1,10 +1,8 @@
 # ROS2 interface for ur_rtde
 
-ROS2 interfaces based on [ur_rtde](https://gitlab.com/sdurobotics/ur_rtde) for communication with **Universal Robot collaborative manipulators**.
+ROS2 interfaces based on [ur_rtde](https://gitlab.com/sdurobotics/ur_rtde) for communication with **Universal Robot collaborative manipulators** developed within [RIMLab](https://rimlab.ce.unipr.it/), the robotic laboratory of the University of Parma. 
 
-This project is born within [RIMLab](https://rimlab.ce.unipr.it/), the robotic laboratory of University of Parma.
-
-If you have any thoughts or feedback about the software, feel free to contact us at alessio.saccuti@unipr.it.
+This project is currently under development, with ongoing updates and enhancements planned for the future. If you have any thoughts or feedback about the software, feel free to contact us at alessio.saccuti@unipr.it.
 
 ---
 
@@ -106,7 +104,7 @@ For further details and documentation, please visit [`ur_ros_rtde`](https://gith
 
 Test if everything is working:
 
-1. make sure `simple_ur10e_description` is compiled and generate UR10e urdf file from xacro files
+1. Ensure that `simple_ur10e_description` is compiled and then generate UR10e urdf file from xacro files
     ```bash
     # generate ur10e urdf
     cd ~/your_path/simple_ur10e_description/urdf
@@ -132,11 +130,11 @@ Test if everything is working:
     ```
 6. Run test:
 
-    **WARNING**! If everything was successfully configured the robot will start moving!
-
-    Send to the robot MoveL commands with respect to the actual pose. It will move +10 cm on X axis, then -20 cm on X axis and finally +10 on X axis again. After each movement the actual pose will be printed in output.
+    **WARNING**! If everything was successfully configured the robot will start moving! Check for possible collisions in the environment considering that in `test_command_server` MoveL commands are sent to the robot. Starting from the actual pose it will move +10 cm on X axis, then -20 cm on X axis and finally +10 on X axis again.
 
     ```bash
     # type in a new terminal
     ros2 run ur_ros_rtde test_command_server
     ```
+
+    
