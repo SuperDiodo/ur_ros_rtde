@@ -9,11 +9,11 @@ def generate_launch_description():
     ######################
     #### CHANGE HERE #####
 
-    robot_ip = "160.78.27.23"  # robot ip, example 127.0.0.1
-    robot_description_package = "simple_ur10e_description" # ros2 pkg containing 3D files of the robot (example: ur10e_description)
-    urdf_file_name = "urdf/ur10e.urdf" # urdf of the robot (example: urdf/ur10e.urdf)
+    robot_ip = ""  # robot ip, example 127.0.0.1
+    robot_description_package = "" # ros2 pkg containing 3D files of the robot (example: ur10e_description)
+    urdf_file_name = "" # urdf of the robot (example: urdf/ur10e.urdf)
     moveit_config_pkg = "" # moveit_config pkg to use (example: ur10e_moveit_config)
-    launch_rviz = True
+    launch_rviz = False
     launch_moveit = False
     
     # use the driver in simulated mode:
