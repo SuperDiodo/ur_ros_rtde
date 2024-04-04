@@ -129,7 +129,7 @@ Test if everything is working:
 3. Launch **robot_state_receiver**:
     ```bash
     # type in a new terminal
-    ros2 launch ur_ros_rtde robot_state_receiver_example.launch.py
+    ros2 launch ur_ros_rtde robot_state_receiver.launch.py
     ```
 4. Configure `command_server.launch.py` setting ip address with `robot_ip`
 5. Launch **command_server**:
