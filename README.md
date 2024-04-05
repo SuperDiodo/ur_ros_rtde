@@ -1,5 +1,5 @@
 
-# ROS2 Interface for Universal Robot CoBots Control with ur_rtde
+# ROS2 Interface for Universal Robot CoBots Control with ur_rtde (C++, Python)
 
 
 <div style="display: flex; justify-content: center;">
