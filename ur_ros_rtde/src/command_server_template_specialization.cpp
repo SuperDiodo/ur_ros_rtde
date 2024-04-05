@@ -590,6 +590,8 @@ std::vector<std::vector<double>> parametrize_traj(const double &dt, const double
     param_traj.push_back(trajectory[i].vector);
   }
 
+  std::cout << "parametrized traj. is composed of " << param_traj.size() << " waypoints" << std::endl;
+
   return param_traj;
 };
 

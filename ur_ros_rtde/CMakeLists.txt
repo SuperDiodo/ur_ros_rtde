@@ -67,13 +67,22 @@ install(TARGETS
 command_server
 DESTINATION lib/${PROJECT_NAME})
 
-# Install test_server
+# Tests
 add_executable(test_command_server src/test/test_command_server.cpp)
 ament_target_dependencies(test_command_server ${dependencies})
 target_link_libraries(test_command_server ${Eigen3_LIBRARIES})
 
 install(TARGETS
 test_command_server
+DESTINATION lib/${PROJECT_NAME})
+
+# Install test_server
+add_executable(test_trajectory_execution src/test/test_trajectory_execution.cpp)
+ament_target_dependencies(test_trajectory_execution ${dependencies})
+target_link_libraries(test_trajectory_execution ${Eigen3_LIBRARIES})
+
+install(TARGETS
+test_trajectory_execution
 DESTINATION lib/${PROJECT_NAME})
 
 # Install launch, config, include folders

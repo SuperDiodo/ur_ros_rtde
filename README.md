@@ -151,11 +151,23 @@ Test if everything is working:
     ```
 6. Run test:
 
-    **WARNING**! If everything was successfully configured the robot will start moving! Check for possible collisions in the environment considering that in `test_command_server` MoveL commands are sent to the robot. Starting from the actual pose it will move +10 cm on X axis, then -20 cm on X axis and finally +10 on X axis again.
+    **WARNING**! If everything was successfully configured the robot will start moving! Check for possible collisions with the environment!
+    
+    With `test_command_server` executable MoveL commands are sent to the robot. Starting from the actual pose it will move +10 cm on X axis, then -20 cm on X axis and finally +10 on X axis again.
 
     ```bash
     # type in a new terminal
     ros2 run ur_ros_rtde test_command_server
     ```
 
-    
+    Moreover, there is a second executable (`test_trajectory_execution`) which can be used to test trajectory execution.
+    The robot will move as shown in the animated image (the robot is oriented towards Y-axis).
+
+    <p align="center">
+      <img src="images/dual.gif">
+    </p>
+
+    ```bash
+    # type in a new terminal
+    ros2 run ur_ros_rtde test_trajectory_execution
+    ```
