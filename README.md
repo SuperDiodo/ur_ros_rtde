@@ -171,3 +171,12 @@ Test if everything is working:
     # type in a new terminal
     ros2 run ur_ros_rtde test_trajectory_execution
     ```
+
+---
+## Integration of `ur_ros_rtde` and MoveIt!
+
+Setting `launch_moveit = True` in `ur_ros_rtde/launch/robot_state_receiver.launch.py`, several files from the associated MoveIt! configuration packages are automatically launched. 
+
+We recommend to use [`moveit_planning`](https://github.com/SuperDiodo/moveit_planning.git), a C++ library which includes utility functions for using ROS2 MoveIt! planning framework.
+
+In `moveit_planning` README instructions on the setup and its usage can be found.
