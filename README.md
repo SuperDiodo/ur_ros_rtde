@@ -179,4 +179,4 @@ Setting `launch_moveit = True` in `ur_ros_rtde/launch/robot_state_receiver.launc
 
 We recommend to use [`moveit_planning`](https://github.com/SuperDiodo/moveit_planning.git), a C++ library which includes utility functions for using ROS2 MoveIt! planning framework.
 
-In `moveit_planning` README instructions on the setup and its usage can be found.
+In `moveit_planning` instructions on the setup and its usage can be found.
