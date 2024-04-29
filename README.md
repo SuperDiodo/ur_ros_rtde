@@ -51,7 +51,9 @@ To utilize our software, you need to install `ur_rtde` and `ROS2`.
 
   You can install `ur_rtde` via `pip` by running: 
   ```bash
-  pip3 install ur_rtde
+  sudo add-apt-repository ppa:sdurobotics/ur-rtde
+  sudo apt-get update
+  sudo apt install librtde librtde-dev
   ```
 
   Alternatively, you can manually build it:
