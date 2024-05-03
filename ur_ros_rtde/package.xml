@@ -15,6 +15,5 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <ur_ros_rtde_commands plugin="${prefix}/polygon_plugins.xml" />
   </export>
 </package>

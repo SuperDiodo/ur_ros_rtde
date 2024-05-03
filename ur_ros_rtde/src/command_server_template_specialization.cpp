@@ -352,6 +352,28 @@ void command_server_template<ur_ros_rtde_msgs::action::MoveUntilTorque>::execute
     rclcpp::sleep_for(std::chrono::milliseconds(params_.move_until_force_collision_check_freq));
   }
 
+  /* retraction
+  
+  actual_pose = rtde_receive_->getActualTCPPose();
+  actual_pose[0] -= goal->tool_position_movement[0];
+  actual_pose[1] -= goal->tool_position_movement[1];
+  actual_pose[2] -= goal->tool_position_movement[2]; 
+  rtde_control_->moveL(actual_pose, goal->speed, goal->acceleration, true);
+
+  while (true)
+  {
+    auto f = rtde_receive_->getActualTCPForce();
+    auto eigen_f = Eigen::Vector3d(f[3],f[4],f[5]);
+    auto f_norm = eigen_f.norm();
+    if (f_norm <= goal->torque_th/2)
+    {
+      rtde_control_->stopL(goal->deceleration);
+      break;
+    }
+    rclcpp::sleep_for(std::chrono::milliseconds(params_.move_until_force_collision_check_freq));
+  }
+  */
+
   result->result = true;
 
   RCLCPP_INFO(self::node_->get_logger(),
@@ -670,7 +692,8 @@ int main(int argc, char **argv)
   internal_params params;
   params.suction_pin = node->declare_parameter<int>("suction_pin", 0);
   params.deposit_pin = node->declare_parameter<int>("deposit_pin", 1);
-  params.move_until_force_collision_check_freq = node->declare_parameter<int>("move_until_force_collision_check_freq", 10);
+  params.move_until_force_collision_check_freq =
+      node->declare_parameter<int>("move_until_force_collision_check_freq", 10);
   params.servoJ_gain = node->declare_parameter<int>("servoJ_gain", 200);
   params.servoJ_lookahead_time = node->declare_parameter<double>("servoJ_lookahead_time", 0.2);
   params.servoJ_timestep = node->declare_parameter<double>("servoJ_timestep", 0.002);
