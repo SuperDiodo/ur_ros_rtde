@@ -5,8 +5,8 @@
 
 
 Some notes of this branch:
-- command serves are handled as ROS2 plugins and custom command can be used without changing the internal `ur_ros_rtde` software.
-- added a third ROS2 node, `dashboar_server`, which enable several ROS2 action server for sending commands to the dashboard.
+- changes to `command_server` node, now the command are handled as ROS2 plugins and custom command can be used without changing the internal `ur_ros_rtde` software.
+- added a third ROS2 node, `dashboard_server`, which enables several ROS2 action server for sending commands to the dashboard.
 
 <div style="display: flex; justify-content: center;">
     <img src="images/logo_rimlab.PNG" alt="Image 1" style="width: auto; height: 150px; margin-right: 25px;">
