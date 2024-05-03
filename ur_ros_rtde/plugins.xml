@@ -1,0 +1,120 @@
+<library path="base_commands_lib">
+  <class type="ExecutePath" base_class_type="ur_ros_rtde_command">
+    <description>ExecutePath command.</description>
+  </class>
+  <class type="ExecuteTrajectory" base_class_type="ur_ros_rtde_command">
+    <description>ExecuteTrajectory command.</description>
+  </class>
+  <class type="MoveJRelative" base_class_type="ur_ros_rtde_command">
+    <description>MoveJRelative command.</description>
+  </class>
+  <class type="MoveJ" base_class_type="ur_ros_rtde_command">
+    <description>MoveJ command.</description>
+  </class>
+  <class type="MoveLRelative" base_class_type="ur_ros_rtde_command">
+    <description>MoveLRelative command.</description>
+  </class>
+  <class type="MoveL" base_class_type="ur_ros_rtde_command">
+    <description>MoveL command.</description>
+  </class>
+  <class type="MoveUntilContact" base_class_type="ur_ros_rtde_command">
+    <description>MoveUntilContact command.</description>
+  </class>
+  <class type="MoveUntilForce" base_class_type="ur_ros_rtde_command">
+    <description>MoveUntilForce command.</description>
+  </class>
+  <class type="MoveUntilTorque" base_class_type="ur_ros_rtde_command">
+    <description>MoveUntilTorque command.</description>
+  </class>
+  <class type="ResetForceTorqueSensor" base_class_type="ur_ros_rtde_command">
+    <description>ResetForceTorqueSensor command.</description>
+  </class>
+  <class type="SetDigitalPin" base_class_type="ur_ros_rtde_command">
+    <description>SetDigitalPin command.</description>
+  </class>
+  <class type="SetFreedrive" base_class_type="ur_ros_rtde_command">
+    <description>SetFreeDrive command.</description>
+  </class>
+  <class type="SetPayload" base_class_type="ur_ros_rtde_command">
+    <description>SetPayload command.</description>
+  </class>
+  <class type="SetSpeedSlider" base_class_type="ur_ros_rtde_command">
+    <description>SetSpeedSlider command.</description>
+  </class>
+</library>
+
+
+<library path="base_dashboard_commands_lib">
+  <class type="AddToLog" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>AddToLog dashboard command.</description>
+  </class>
+  <class type="BrakeRelease" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>BrakeRelease dashboard command.</description>
+  </class>
+  <class type="ClosePopup" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>ClosePopup dashboard command.</description>
+  </class>
+  <class type="CloseSafetyPopup" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>CloseSafetyPopup dashboard command.</description>
+  </class>
+  <class type="GetLoadedProgram" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>GetLoadedProgram dashboard command.</description>
+  </class>
+  <class type="GetRobotModel" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>GetRobotModel dashboard command.</description>
+  </class>
+  <class type="GetSerialNumber" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>GetSerialNumber dashboard command.</description>
+  </class>
+  <class type="IsInRemoteControl" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>IsInRemoteControl dashboard command.</description>
+  </class>
+  <class type="IsProgramSaved" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>IsProgramSaved dashboard command.</description>
+  </class>
+  <class type="LoadUrp" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>LoadUrp dashboard command.</description>
+  </class>
+  <class type="Pause" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>Pause dashboard command.</description>
+  </class>
+  <class type="Play" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>Play dashboard command.</description>
+  </class>
+  <class type="PolyscopeVersion" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>PolyscopeVersion dashboard command.</description>
+  </class>
+  <class type="Popup" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>Popup dashboard command.</description>
+  </class>
+  <class type="PowerOff" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>PowerOff dashboard command.</description>
+  </class>
+  <class type="PowerOn" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>PowerOn dashboard command.</description>
+  </class>
+  <class type="ProgramState" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>ProgramState dashboard command.</description>
+  </class>
+  <class type="RestartSafety" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>RestartSafety dashboard command.</description>
+  </class>
+  <class type="RobotMode" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>RobotMode dashboard command.</description>
+  </class>
+  <class type="Running" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>Running dashboard command.</description>
+  </class>
+  <class type="SafetyMode" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>SafetyMode dashboard command.</description>
+  </class>
+  <class type="SafetyStatus" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>SafetyStatus dashboard command.</description>
+  </class>
+  <class type="Shutdown" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>Shutdown dashboard command.</description>
+  </class>
+  <class type="UnlockProtectiveStop" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>UnlockProtectiveStop dashboard command.</description>
+  </class>
+</library>

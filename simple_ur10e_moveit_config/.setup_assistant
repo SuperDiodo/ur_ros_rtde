@@ -7,7 +7,7 @@ moveit_setup_assistant_config:
   package_settings:
     author_name: Alessio Saccuti
     author_email: alessio.saccuti@unipr.it
-    generated_timestamp: 1712218518
+    generated_timestamp: 1713364468
   control_xacro:
     command:
       - position

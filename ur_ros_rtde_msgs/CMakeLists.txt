@@ -24,31 +24,17 @@ set(dependencies
   builtin_interfaces
 )
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/JointsConfiguration.msg"
-  "msg/Vector.msg"
-  "action/MoveL.action"
-  "action/MoveJ.action"
-  "action/SetDigitalPin.action"
-  "action/SetSuction.action"
-  "action/SetDeposit.action"
-  "action/SetPayload.action"
-  "action/ExecutePath.action"
-  "action/ExecuteTrajectory.action"
-  "action/SetSpeedSlider.action"
-  "action/MoveUntilContact.action"
-  "action/MoveUntilForce.action"
-  "action/MoveUntilTorque.action"
-  "action/MoveLRelative.action"
-  "action/MoveJRelative.action"
-  "action/ResetForceTorqueSensor.action"
-  "action/SoftGripperControl.action"
-  "action/SetFreedrive.action"
-  "srv/GetInternalState.srv"
-  "srv/GetTcpPose.srv"
-  "srv/GetWrench.srv"
-  "srv/GetRobotConfiguration.srv"
-  DEPENDENCIES ${dependencies})
+file(
+  GLOB_RECURSE INTERFACE_FILES
+  RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+  ./action/*.action
+  ./msg/*.msg
+  ./srv/*.srv
+)
+
+rosidl_generate_interfaces(${PROJECT_NAME} 
+	${INTERFACE_FILES}
+DEPENDENCIES ${dependencies})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
