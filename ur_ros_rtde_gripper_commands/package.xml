@@ -1,20 +1,22 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>ur_ros_rtde</name>
+  <name>ur_ros_rtde_gripper_commands</name>
   <version>0.0.0</version>
-  <description>Ros2 nodes for communication with a Universal Robot collaborative manipulator.</description>
+  <description>ur_ros_rtde commands for controlling grippers</description>
   <maintainer email="alessio.saccuti@unipr.it">Alessio Saccuti</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>ament_cmake_python</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
+
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
-    <ur_ros_rtde_commands plugin="${prefix}/polygon_plugins.xml" />
   </export>
 </package>
