@@ -1,4 +1,3 @@
-
 # Robot State Receiver
 
 **Features parameters**:
@@ -265,7 +264,7 @@ Most of the actions are composed of just `request` field. In future `result` and
 
 # External Hardware
 
-The command server can be easily extended with special actions designed for controlling external hardware. Examples, already available in the software, are shown below.
+The commands in `ur_ros_rtde` can be easily extended with custom behaviours. Examples for controlling real grippers, available in `ur_ros_rtde_gripper_commands`, are shown below.
 
 ### Schmalz GCPi vacuum generator:
 
