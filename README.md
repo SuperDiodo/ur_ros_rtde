@@ -34,6 +34,7 @@ This project is currently under development, with ongoing updates and enhancemen
 - Possibility of using ROS2 interfaces in simulated environments, even in the absence of physical hardware (e.g., trajectory evaluation).
 - Possibility of using ROS2 interfaces along with MoveIt! configuration packages.
 - Visualization of the 3D robot in RViz.
+- Extension of robot commands through ROS2 plugins.
 
 <p align="center">
   <img src="images/dual.gif">
@@ -45,6 +46,7 @@ This project is currently under development, with ongoing updates and enhancemen
 - `ur_ros_rtde`: the core of our software, ROS2 nodes which provides messages on topics, services and actions.
 - `ur_ros_rtde_msgs`: messages, services and actions definitions.
 - `ur_ros_rtde_simple_clients`: utility header files for services and actions.
+- `ur_ros_rtde_gripper_commands`: example of plugins that extend the robot commands enabling the control of real grippers.
 - `simple_ur10e_description`: example of description package containing meshes, xacro and urdf files. The package is a simplified version of [this repository](https://github.com/UniversalRobots/Universal_Robots_ROS2_Description), but specific for UR10e.
 - `simple_ur10e_moveit_config`: example of MoveIt! configuration package generated with `moveit_setup_assistant`.
 
@@ -107,6 +109,9 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --package
 # build ur_ros_rtde_simple_clients
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_simple_clients
 
+# build ur_ros_rtde_gripper_commands
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_gripper_commands
+
 # build ur_ros_rtde
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde
 
@@ -121,11 +126,13 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --package
 ---
 ## How to use `ur_ros_rtde`
 
-Our software is composed of two ROS2 nodes:
+Our software is composed of three ROS2 nodes:
 
 **robot_state_receiver**: provides robot data through topics and services (reference launch file: `robot_state_receiver.launch.py`).
 
-**command_server**: offers ROS2 action servers for robot control (reference launch file: `command_server.launch.py`)
+**command_server**: discovers and loads `ur_ros_rtde_commands` plugins available in the ROS2 workspace. Each plugin has the goal of starting a ROS2 action servers for robot control (reference files `command_server.launch.py`, `command_base_class.hpp`).
+
+**dashboard_server**: discovers and loads `ur_ros_rtde_dashboard_commands` plugins available in the ROS2 workspace. Each plugin has the goal of starting a ROS2 action servers for robot control (reference files `dashboard_server.launch.py`, `dashboard_command_base_class.hpp`).
 
 You can easily interact with ROS2 services and actions using header files provided in `ur_ros_rtde_simple_clients`.
 For further details and documentation, please visit [`ur_ros_rtde`](https://github.com/SuperDiodo/ur_ros_rtde/tree/main/ur_ros_rtde).
@@ -179,6 +186,53 @@ Test if everything is working:
     # type in a new terminal
     ros2 run ur_ros_rtde test_trajectory_execution
     ```
+
+---
+## Adding new plugins to `ur_ros_rtde`
+
+In `ur_ros_rtde/src/base_commands` and `ur_ros_rtde/src/base_dashboard_commands` several commands from `ur_rtde` [RTDE Control Interface](https://sdurobotics.gitlab.io/ur_rtde/api/api.html#rtde-control-interface-api) and [Dashboard Client](https://sdurobotics.gitlab.io/ur_rtde/api/api.html#dashboard-client-api) are implemented as ROS2 plugins. When launching `command_server` and `dashboard_server` these plugins are automatically loaded.
+
+An example of commands that can be defined in custom ROS2 packages is reported in `ur_ros_rtde_gripper_commands`, an initial tutorial on plugin can be found [here](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Pluginlib.html).
+
+Basically:
+1. create a ROS2 package containing a `plugin.xml` file in which the plugins are declared. Use as template `ur_ros_rtde_gripper_commands`.
+2. create new plugins as `ur_ros_rtde_command` or `ur_ros_rtde_dashboard_command` subclass:
+    ```cpp
+
+    // < EXAMPLE OF ur_ros_rtde_command DEFINITION>
+
+    #include <ur_ros_rtde/command_base_class.hpp>
+    #include <ur_ros_rtde_msgs/action/your_action.hpp> // your action header file
+    #include <pluginlib/class_list_macros.hpp>
+
+    template <>
+    void command_server_template<ur_ros_rtde_msgs::action::YoruAction>::execute(
+        const std::shared_ptr<rclcpp_action::ServerGoalHandle<ur_ros_rtde_msgs::action::YoruAction>> goal_handle)
+    {
+      // action behaviour
+    };
+
+    class YoruAction : public ur_ros_rtde_command
+    {
+    public:
+      void start_action_server(rclcpp::Node::SharedPtr node,
+                              const internal_params &params,
+                              std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control,
+                              std::shared_ptr<ur_rtde::RTDEIOInterface> rtde_io,
+                              std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive,
+                              std::shared_ptr<ur_rtde::DashboardClient> dashboard_client) override
+      {
+        server_ = std::make_unique<command_server_template<ur_ros_rtde_msgs::action::YoruAction>>(
+            node, "your_action_command", params, rtde_control, rtde_io, rtde_receive, dashboard_client);
+      };
+
+    private:
+      std::unique_ptr<command_server_template<ur_ros_rtde_msgs::action::YoruAction>> server_;
+    };
+
+    PLUGINLIB_EXPORT_CLASS(YoruAction, ur_ros_rtde_command)
+    ```
+3. Compile the package and, it everything worked, `command_server` or `dashboard server` will automatically load the new plugins. 
 
 ---
 ## Integration of `ur_ros_rtde` and MoveIt!
