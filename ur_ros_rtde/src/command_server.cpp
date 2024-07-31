@@ -21,8 +21,9 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
     auto node = rclcpp::Node::make_shared("ur_ros_rtde_command_server_node");
-    auto robot_ip = node->declare_parameter<std::string>("robot_ip", "160.78.27.23");
+    auto robot_ip = node->declare_parameter<std::string>("robot_ip", "127.0.0.1");
 
+    // change params with hardcoded numbers in each plugin
     internal_params params;
     params.suction_pin = node->declare_parameter<int>("suction_pin", 0);
     params.deposit_pin = node->declare_parameter<int>("deposit_pin", 1);
@@ -38,6 +39,7 @@ int main(int argc, char **argv)
     params.desired_width_input_register = node->declare_parameter<int>("desired_width_input_register", 18);
     params.feedback_width_output_register = node->declare_parameter<int>("feedback_width_output_register", 18);
 
+    //rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, 500, ur_rtde::RTDEControlInterface::FLAG_USE_EXT_UR_CAP);
     rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip);
     rtde_io = std::make_shared<ur_rtde::RTDEIOInterface>(robot_ip);
     rtde_receive = std::make_shared<ur_rtde::RTDEReceiveInterface>(robot_ip, params.receiver_freq);

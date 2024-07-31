@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
     auto node = rclcpp::Node::make_shared("ur_ros_rtde_dashboard_server_node");
-    auto robot_ip = node->declare_parameter<std::string>("robot_ip", "160.78.27.23");
+    auto robot_ip = node->declare_parameter<std::string>("robot_ip", "127.0.0.1");
     dashboard_client = std::make_shared<ur_rtde::DashboardClient>(robot_ip);
 
     RCLCPP_INFO(node->get_logger(), "Init done, discovering plugins..");
