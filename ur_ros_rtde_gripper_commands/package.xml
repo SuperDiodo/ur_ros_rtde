@@ -7,6 +7,9 @@
   <maintainer email="alessio.saccuti@unipr.it">Alessio Saccuti</maintainer>
   <license>Apache-2.0</license>
 
+  <depend>ur_ros_rtde_msgs</depend>
+  <build_depend>ur_ros_rtde</build_depend>
+
   <buildtool_depend>ament_cmake_ros</buildtool_depend>
 
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
