@@ -6,6 +6,9 @@
   <description>Ros2 nodes for communication with a Universal Robot collaborative manipulator.</description>
   <maintainer email="alessio.saccuti@unipr.it">Alessio Saccuti</maintainer>
   <license>TODO: License declaration</license>
+  
+  <depend>ur_ros_rtde_msgs</depend>
+  <depend>ur_ros_rtde_simple_clients</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
