@@ -5,6 +5,9 @@
   <class type="ExecuteTrajectory" base_class_type="ur_ros_rtde_command">
     <description>ExecuteTrajectory command.</description>
   </class>
+  <class type="ExecuteTrajectory2" base_class_type="ur_ros_rtde_command">
+    <description>ExecuteTrajectory2 command.</description>
+  </class>
   <class type="MoveJRelative" base_class_type="ur_ros_rtde_command">
     <description>MoveJRelative command.</description>
   </class>
@@ -40,6 +43,9 @@
   </class>
   <class type="SetSpeedSlider" base_class_type="ur_ros_rtde_command">
     <description>SetSpeedSlider command.</description>
+  </class>
+  <class type="SendCustomScript" base_class_type="ur_ros_rtde_command">
+    <description>SendCustomScript command.</description>
   </class>
 </library>
 

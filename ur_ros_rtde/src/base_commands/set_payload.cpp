@@ -11,7 +11,7 @@ void command_server_template<ur_ros_rtde_msgs::action::SetPayload>::execute(
     check_control_interface_connection(rtde_control_, node_);
     result->result = rtde_control_->setPayload(
         goal->mass, {goal->center_of_gravity.x, goal->center_of_gravity.y, goal->center_of_gravity.z});
-    RCLCPP_INFO(self::node_->get_logger(), (result->result ? "%s succeeded" : "%s failed"), action_name_);
+    RCLCPP_INFO(self::node_->get_logger(), (result->result ? "%s succeeded" : "%s failed"), action_name_.c_str());
     result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
 };
 

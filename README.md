@@ -1,13 +1,6 @@
 
 # ROS2 Interface for Universal Robot CoBots Control with ur_rtde (C++, Python)
 
-**WARNING!** This is the same readme of main branch. It will be updated soon.
-
-
-Some notes of this branch:
-- changes to `command_server` node, now the command are handled as ROS2 plugins and custom command can be used without changing the internal `ur_ros_rtde` software.
-- added a third ROS2 node, `dashboard_server`, which enables several ROS2 action server for sending commands to the dashboard.
-
 <div style="display: flex; justify-content: center;">
     <img src="images/logo_rimlab.PNG" alt="Image 1" style="width: auto; height: 150px; margin-right: 25px;">
     <img src="images/logo_repo.jpg" alt="Image 2" style="width: auto; height: 150px; margin-left: 25px;">

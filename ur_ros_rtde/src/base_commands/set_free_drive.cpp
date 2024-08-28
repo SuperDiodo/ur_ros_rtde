@@ -15,7 +15,7 @@ void command_server_template<ur_ros_rtde_msgs::action::SetFreedrive>::execute(
   }
   else
     result->result = rtde_control_->endFreedriveMode();
-  RCLCPP_INFO(self::node_->get_logger(), (result->result ? "%s succeeded" : "%s failed"), action_name_);
+  RCLCPP_INFO(self::node_->get_logger(), (result->result ? "%s succeeded" : "%s failed"), action_name_.c_str());
   result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
 };
 

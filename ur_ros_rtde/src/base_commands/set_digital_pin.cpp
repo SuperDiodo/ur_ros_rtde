@@ -9,7 +9,7 @@ void command_server_template<ur_ros_rtde_msgs::action::SetDigitalPin>::execute(
   const auto goal = goal_handle->get_goal();
   auto result = std::make_shared<ur_ros_rtde_msgs::action::SetDigitalPin::Result>();
   result->result = rtde_io_->setStandardDigitalOut(goal->pin, goal->state);
-  RCLCPP_INFO(self::node_->get_logger(), (result->result ? "%s succeeded" : "%s failed"), action_name_);
+  RCLCPP_INFO(self::node_->get_logger(), (result->result ? "%s succeeded" : "%s failed"), action_name_.c_str());
   result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
 };
 

@@ -10,7 +10,7 @@ void command_server_template<ur_ros_rtde_msgs::action::MoveJ>::execute(
   auto result = std::make_shared<ur_ros_rtde_msgs::action::MoveJ::Result>();
   check_control_interface_connection(rtde_control_, node_);
   result->result = rtde_control_->moveJ(goal->joint_position, goal->speed, goal->acceleration);
-  RCLCPP_INFO(self::node_->get_logger(), (result->result ? "%s succeeded" : "%s failed"), action_name_);
+  RCLCPP_INFO(self::node_->get_logger(), (result->result ? "%s succeeded" : "%s failed"), action_name_.c_str());
   result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
 };
 

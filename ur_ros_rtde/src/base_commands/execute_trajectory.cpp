@@ -5,6 +5,8 @@
 using namespace std::chrono_literals;
 using namespace std::chrono;
 
+std::vector<double> joint_speed_limits = {2.09, 2.09, M_PI, M_PI, M_PI, M_PI};
+
 std::vector<double> get_times(const std::vector<ur_ros_rtde_msgs::msg::Vector> &trajectory, const double &a, const double &v)
 {
   std::vector<std::vector<double>> velocities_forward;
@@ -18,12 +20,16 @@ std::vector<double> get_times(const std::vector<ur_ros_rtde_msgs::msg::Vector> &
     {
       double diff = trajectory[i - 1].vector[j] - trajectory[i].vector[j];
       double new_v = 0.0;
+      double clamped_v = std::min(v, joint_speed_limits[j]);
       if (diff * old_diff[j] >= 0)
-        new_v = std::min(v, sqrt(2 * a * abs(diff) + pow(old_vel[j], 2)));
+        new_v = std::min(clamped_v, sqrt(2 * a * abs(diff) + pow(old_vel[j], 2)));
       else
-        new_v = std::min(v, sqrt(a * abs(diff)));
+        new_v = std::min(clamped_v, sqrt(a * abs(diff)));
+
+      // if(j == 0) std::cout << (diff * old_diff[j] >= 0 ? "up" : "reset") << ", old: " << old_vel[j] << ", diff: " << diff <<  ", new: " << new_v << std::endl;
 
       motors_velocities.push_back(new_v);
+
       old_diff[j] = diff;
       old_vel[j] = new_v;
     }
@@ -32,7 +38,6 @@ std::vector<double> get_times(const std::vector<ur_ros_rtde_msgs::msg::Vector> &
   }
 
   std::vector<std::vector<double>> velocities_backward;
-
   old_diff = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   old_vel = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
@@ -44,12 +49,14 @@ std::vector<double> get_times(const std::vector<ur_ros_rtde_msgs::msg::Vector> &
     {
       double diff = trajectory[i + 1].vector[j] - trajectory[i].vector[j];
       double new_v = 0.0;
+      double clamped_v = std::min(v, joint_speed_limits[j]);
       if (diff * old_diff[j] >= 0)
-        new_v = std::min(v, sqrt(2 * a * abs(diff) + pow(old_vel[j], 2)));
+        new_v = std::min(clamped_v, sqrt(2 * a * abs(diff) + pow(old_vel[j], 2)));
       else
-        new_v = std::min(v, sqrt(a * abs(diff)));
+        new_v = std::min(clamped_v, sqrt(a * abs(diff)));
 
       motors_velocities.push_back(new_v);
+
       old_diff[j] = diff;
       old_vel[j] = new_v;
     }
@@ -92,11 +99,12 @@ std::vector<double> get_times(const std::vector<ur_ros_rtde_msgs::msg::Vector> &
   return times;
 };
 
-std::vector<std::vector<double>> parametrize_traj(const double &dt, const double &acceleration, const double &velocity,
+std::vector<std::vector<double>> parametrize_traj(const double &dt, const double &acceleration, const double &speed,
                                                   const std::vector<ur_ros_rtde_msgs::msg::Vector> &trajectory)
 {
-  std::cout << "Parametrizing trajectory with " << trajectory.size() << " waypoints, max speed: " << velocity << ", max acceleration: " << acceleration << std::endl;
-  std::vector<double> times = get_times(trajectory, acceleration, velocity);
+  std::cout << "Parametrizing trajectory with " << trajectory.size() << " waypoints, max speed: " << speed << ", max acceleration: " << acceleration << std::endl;
+
+  std::vector<double> times = get_times(trajectory, acceleration, speed);
   std::vector<std::vector<double>> param_traj;
 
   for (size_t i = 1; i < trajectory.size(); i++)
@@ -109,23 +117,20 @@ std::vector<std::vector<double>> parametrize_traj(const double &dt, const double
 
       double num_interpolation = times[i] / dt;
 
-      std::cout << "waypoint " << i << " must be interpolated " << num_interpolation
-                << " times (time diff: " << times[i] << " s)" << std::endl;
+      //std::cout << "waypoint " << i << " must be interpolated " << num_interpolation << " times (time diff: " << times[i] << " s)" << std::endl;
 
-      for (double k = 0; k <= 1.0; k += 1.0 / num_interpolation)
+      double interpolation_step = 1.0 / num_interpolation;
+      for (int k = 0; k < num_interpolation; k++)
       {
         std::vector<double> interpolated_q;
         for (size_t j = 0; j < curr_q.size(); j++)
-          interpolated_q.push_back((1 - k) * prev_q[j] + k * curr_q[j]);
-
+          interpolated_q.push_back((1.0 - k * interpolation_step) * prev_q[j] + k * interpolation_step * curr_q[j]);
         param_traj.push_back(interpolated_q);
       }
     }
-
-    param_traj.push_back(trajectory[i].vector);
   }
 
-  std::cout << "parametrized traj. is composed of " << param_traj.size() << " waypoints" << std::endl;
+  param_traj.push_back(trajectory.back().vector);
 
   return param_traj;
 };
@@ -139,14 +144,51 @@ void command_server_template<ur_ros_rtde_msgs::action::ExecuteTrajectory>::execu
   check_control_interface_connection(rtde_control_, node_);
   check_receive_interface_connection(rtde_receive_, node_);
 
+  std::vector<ur_ros_rtde_msgs::msg::Vector> trajectory;
+
   if (goal->trajectory.size() <= 1)
   {
     result->result = true;
     RCLCPP_INFO(self::node_->get_logger(), "Terminating execution, the passed trajectory has only %ld waypoints", goal->trajectory.size());
     return;
   }
+  else
+  {
 
-  auto p_trajectory = parametrize_traj(params_.parametrization_timestep, goal->acceleration, goal->speed, goal->trajectory);
+    for (size_t i = 1; i < goal->trajectory.size(); i++)
+    {
+      auto conf1 = goal->trajectory[i - 1].vector;
+      auto conf2 = goal->trajectory[i].vector;
+
+      double total_dist = 0.0;
+      for (size_t j = 0; j < conf1.size(); ++j)
+        total_dist += std::pow(conf2[j] - conf1[j], 2);
+      total_dist = std::sqrt(total_dist);
+
+      size_t num_waypoints = std::ceil(total_dist / (0.02));
+
+      for (size_t j = 0; j < num_waypoints; ++j)
+      {
+        ur_ros_rtde_msgs::msg::Vector waypoint;
+        double t = static_cast<double>(j) / num_waypoints;
+
+        for (size_t k = 0; k < conf1.size(); ++k)
+        {
+          waypoint.vector.push_back((1 - t) * conf1[k] + t * conf2[k]);
+        }
+
+        trajectory.push_back(waypoint);
+      }
+    }
+
+    trajectory.push_back(goal->trajectory.back());
+
+    RCLCPP_INFO(self::node_->get_logger(), "Trajectory waypoints interpolated, old trajectory size is %ld, new trajectory size is %ld", goal->trajectory.size(), trajectory.size());
+  }
+
+  auto p_trajectory = parametrize_traj(params_.parametrization_timestep, goal->acceleration, goal->speed, trajectory);
+
+  RCLCPP_INFO(self::node_->get_logger(), "Parametrized trajectory was divided into %ld waypoints, starting execution", p_trajectory.size());
 
   int sleep_dt = params_.servoJ_timestep * 1000;
 
@@ -155,8 +197,9 @@ void command_server_template<ur_ros_rtde_msgs::action::ExecuteTrajectory>::execu
   steady_clock::time_point t_start;
 
   double time = 0.0;
-  for (auto p : p_trajectory)
+  for(size_t p_index = 0; p_index < p_trajectory.size(); p_index++)
   {
+    auto p = p_trajectory[p_index];
     t_start = rtde_control_->initPeriod();
     result->result = rtde_control_->servoJ(p, goal->speed, goal->acceleration, params_.servoJ_timestep,
                                            params_.servoJ_lookahead_time, params_.servoJ_gain);
@@ -175,18 +218,38 @@ void command_server_template<ur_ros_rtde_msgs::action::ExecuteTrajectory>::execu
 
       Eigen::VectorXd actual_conf = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(q.data(), q.size());
       Eigen::VectorXd desired_conf = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(p.data(), p.size());
+
+      std::cout << std::endl;
+      std::cout << actual_conf << std::endl;
+      std::cout << desired_conf << std::endl;
+
       auto deviation = (actual_conf - desired_conf).norm();
+
+      RCLCPP_INFO(self::node_->get_logger(), "Trajectory execution, deviation at state %ld of %f rad", p_index, deviation);
+
       if (deviation > params_.max_deviation)
       {
         result->result = false;
+        rtde_control_->servoStop(std::max(goal->deceleration, 1.0));
         RCLCPP_INFO(self::node_->get_logger(), "Aborting because the robot deviation is greater than %f rad", params_.max_deviation);
-        break;
+        result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
+        return;
       }
+    }
+
+    if (goal_handle->is_canceling())
+    {
+      rtde_control_->servoStop(std::max(goal->deceleration, 1.0));
+      result->result = false;
+      RCLCPP_INFO(self::node_->get_logger(), "Trajectory execution canceled");
+      goal_handle->canceled(result);
+      return;
     }
   }
 
   Eigen::VectorXd desired_conf = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(p_trajectory[p_trajectory.size() - 1].data(), p_trajectory[p_trajectory.size() - 1].size());
 
+  // if not aborted because of deviation execute the final step
   while (true)
   {
     t_start = rtde_control_->initPeriod();
@@ -208,12 +271,13 @@ void command_server_template<ur_ros_rtde_msgs::action::ExecuteTrajectory>::execu
     }
   }
 
-  rtde_control_->servoStop(goal->deceleration);
+  // Make sure that the final step is the goal
+  rtde_control_->servoStop(std::max(goal->deceleration, 1.0));
   rtde_control_->moveJ(p_trajectory[p_trajectory.size() - 1], 0.2, 0.2);
   rtde_control_->stopJ();
 
   RCLCPP_INFO(self::node_->get_logger(),
-              (result->result ? "%s succeeded" : "%s failed"), action_name_);
+              (result->result ? "%s succeeded" : "%s failed"), action_name_.c_str());
 
   result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
 };

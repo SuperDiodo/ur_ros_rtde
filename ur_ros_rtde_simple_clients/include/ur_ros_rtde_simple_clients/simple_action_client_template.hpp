@@ -86,7 +86,6 @@ public:
         if(verbose_) RCLCPP_ERROR(node_->get_logger(), "interrupted while waiting for the action server %s", action_server_name.c_str());
         return false;
       }
-
       if(verbose_) RCLCPP_INFO(node_->get_logger(), "Action server %s not available after waiting 1 second", action_server_name.c_str());
     }
     

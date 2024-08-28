@@ -19,7 +19,7 @@ void dashboard_server_template<ur_ros_rtde_msgs::action::Popup>::execute(
     succeded = false;
   }
 
-  RCLCPP_INFO(self::node_->get_logger(), (succeded ? "%s succeeded" : "%s failed"), action_name_);
+  RCLCPP_INFO(self::node_->get_logger(), (succeded ? "%s succeeded" : "%s failed"), action_name_.c_str());
   succeded ? goal_handle->succeed(result) : goal_handle->abort(result);
 };
 

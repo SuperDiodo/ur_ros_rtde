@@ -82,7 +82,6 @@ target_include_directories(base_commands_lib PUBLIC
 ament_target_dependencies(base_commands_lib ${dependencies})
 target_link_libraries(base_commands_lib ${Eigen3_LIBRARIES} ur_rtde::rtde)
 
-
 install(
   TARGETS base_commands_lib
   EXPORT export_${PROJECT_NAME}
@@ -113,7 +112,6 @@ target_include_directories(base_dashboard_commands_lib PUBLIC
 ament_target_dependencies(base_dashboard_commands_lib ${dependencies})
 target_link_libraries(base_dashboard_commands_lib ${Eigen3_LIBRARIES} ur_rtde::rtde)
 
-
 install(
   TARGETS base_dashboard_commands_lib
   EXPORT export_${PROJECT_NAME}
@@ -123,21 +121,50 @@ install(
 )
 
 # Tests
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_command_server.cpp")
 add_executable(test_command_server src/test/test_command_server.cpp)
 ament_target_dependencies(test_command_server ${dependencies})
 target_link_libraries(test_command_server ${Eigen3_LIBRARIES})
-
 install(TARGETS
 test_command_server
 DESTINATION lib/${PROJECT_NAME})
+endif()
 
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_upload_custom_script.cpp")
+add_executable(test_upload_custom_script src/test/test_upload_custom_script.cpp)
+ament_target_dependencies(test_upload_custom_script ${dependencies})
+target_link_libraries(test_upload_custom_script ${Eigen3_LIBRARIES} ur_rtde::rtde)
+install(TARGETS
+test_upload_custom_script
+DESTINATION lib/${PROJECT_NAME})
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_trajectory_execution.cpp")
 add_executable(test_trajectory_execution src/test/test_trajectory_execution.cpp)
 ament_target_dependencies(test_trajectory_execution ${dependencies})
 target_link_libraries(test_trajectory_execution ${Eigen3_LIBRARIES})
-
 install(TARGETS
 test_trajectory_execution
 DESTINATION lib/${PROJECT_NAME})
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_trajectory_2_execution.cpp")
+add_executable(test_trajectory_2_execution src/test/test_trajectory_2_execution.cpp)
+ament_target_dependencies(test_trajectory_2_execution ${dependencies})
+target_link_libraries(test_trajectory_2_execution ${Eigen3_LIBRARIES})
+install(TARGETS
+test_trajectory_2_execution
+DESTINATION lib/${PROJECT_NAME})
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_trajectory_time_planning.cpp")
+add_executable(test_trajectory_time_planning src/test/test_trajectory_time_planning.cpp)
+ament_target_dependencies(test_trajectory_time_planning ${dependencies})
+target_link_libraries(test_trajectory_time_planning ${Eigen3_LIBRARIES})
+install(TARGETS
+test_trajectory_time_planning
+DESTINATION lib/${PROJECT_NAME})
+endif()
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
