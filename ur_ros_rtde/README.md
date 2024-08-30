@@ -86,10 +86,9 @@ ____
 
 **Launch file parameters**:
 - `robot_ip`: the ip of the robot that ur_rtde will use for tcp/ip connection.
-- `receiver_freq`: frequency (hz) at which ur_rtde receiving interface will work. In the command server the receiving interface is used to perform checks while sending commands to the robot.
 
 **Commands ROS2 params**:
-Each command can define internal ROS2 parameters. The format is `command_name.param_name`.
+In each command ROS2 parameters can be defined. The format is `command_name.param_name`.
 
 **move_until_force**
 - `sleep`: sleep time before reading a new force measurement.

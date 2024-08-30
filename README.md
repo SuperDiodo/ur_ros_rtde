@@ -13,6 +13,8 @@ The software was developed within [RIMLab](https://rimlab.ce.unipr.it/), the rob
 
 This project is currently under development, with ongoing updates and enhancements planned for the future. If you have any thoughts or feedback about the software, feel free to contact us at alessio.saccuti@unipr.it.
 
+**Use this software with caution. The robot may collide with objects or people if not properly monitored. Always ensure a safe environment during operation. The developers are not responsible for any damages or injuries caused by improper use.**
+
 ---
 
 ## Capabilities of `ur_ros_rtde`
@@ -107,9 +109,9 @@ Our software is composed of three ROS2 nodes:
 
 **robot_state_receiver**: provides robot data through topics and services (reference launch file: `robot_state_receiver.launch.py`).
 
-**command_server**: discovers and loads `ur_ros_rtde_commands` plugins available in the ROS2 workspace. Each plugin has the goal of starting a ROS2 action servers for robot control (reference files `command_server.launch.py`, `command_base_class.hpp`).
+**command_server**: discovers and loads `ur_ros_rtde_commands` plugins available in the ROS2 workspace. Each plugin starts a ROS2 action server for robot control (reference files `command_server.launch.py`, `command_base_class.hpp`).
 
-**dashboard_server**: discovers and loads `ur_ros_rtde_dashboard_commands` plugins available in the ROS2 workspace. Each plugin has the goal of starting a ROS2 action servers for robot control (reference files `dashboard_server.launch.py`, `dashboard_command_base_class.hpp`).
+**dashboard_server**: discovers and loads `ur_ros_rtde_dashboard_commands` plugins available in the ROS2 workspace. Each plugin starts a ROS2 action servers for robot control (reference files `dashboard_server.launch.py`, `dashboard_command_base_class.hpp`).
 
 You can easily interact with ROS2 services and actions using header files provided in `ur_ros_rtde_simple_clients`.
 For further details and documentation, please visit [`ur_ros_rtde`](https://github.com/SuperDiodo/ur_ros_rtde/tree/main/ur_ros_rtde).
