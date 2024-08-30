@@ -14,6 +14,8 @@ The software was developed within [RIMLab](https://rimlab.ce.unipr.it/), the rob
 
 This project is currently under development, with ongoing updates and enhancements planned for the future. If you have any thoughts or feedback about the software, feel free to contact us at alessio.saccuti@unipr.it.
 
+**Use this software with caution. The robot may collide with objects or people if not properly monitored. Always ensure a safe environment during operation. The developers are not responsible for any damages or injuries caused by improper use.**
+
 ---
 
 ## Capabilities of `ur_ros_rtde`
