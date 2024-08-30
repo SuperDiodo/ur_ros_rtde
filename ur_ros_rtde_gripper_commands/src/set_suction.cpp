@@ -55,5 +55,3 @@ private:
 };
 
 PLUGINLIB_EXPORT_CLASS(PLUGIN_CLASS_NAME, ur_ros_rtde_command)
-
-PLUGINLIB_EXPORT_CLASS(SetSuction, ur_ros_rtde_command)

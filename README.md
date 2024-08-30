@@ -98,23 +98,7 @@ Additionally, install the following packages:
 git clone https://github.com/SuperDiodo/ur_ros_rtde.git
 
 # build ur_ros_rtde
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde
-
-(Optional but recommended)
-
-# build ur_ros_rtde_simple_clients
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_simple_clients
-
-(Optional)
-
-# (optional) build ur_ros_rtde_gripper_commands
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_gripper_commands
-
-# build simple_ur10e_description, i.e. ur10e meshes and xacro files
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select simple_ur10e_description
-
-# build simple_ur10e_moveit_config, i.e. configuration pkg for MoveIt!
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select simple_ur10e_moveit_config
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
 ---
 ## How to use `ur_ros_rtde`
@@ -153,6 +137,12 @@ Test if everything is working:
     # type in a new terminal
     ros2 launch ur_ros_rtde robot_state_receiver.launch.py
     ```
+    
+    The first time RViz will be empty. To show the robot: 
+    1. Add a robot model: `Displays\Add\RobotModel`
+    2. Set `world` in `Fixed Frame`
+    3. Set `/robot_description` in `RobotModel\Description Topic`
+    
 4. Configure `command_server.launch.py` setting ip address with `robot_ip`
 5. Launch **command_server**:
     ```bash

@@ -39,9 +39,10 @@ target_include_directories(gripper_commands_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(gripper_commands_lib ${dependencies})
-rosidl_target_interfaces(gripper_commands_lib
-  ${PROJECT_NAME} "rosidl_typesupport_cpp")
-  target_link_libraries(gripper_commands_lib ${Eigen3_LIBRARIES} ur_rtde::rtde)
+
+# Get the typesupport target and link it
+rosidl_get_typesupport_target(typesupport_target_cpp ${PROJECT_NAME} "rosidl_typesupport_cpp")
+target_link_libraries(gripper_commands_lib ${typesupport_target_cpp} ${Eigen3_LIBRARIES} ur_rtde::rtde)
 
 install(
   TARGETS gripper_commands_lib
@@ -64,7 +65,7 @@ if(BUILD_TESTING)
 endif()
 
 install(DIRECTORY
-config
+  config
   DESTINATION share/${PROJECT_NAME}/
 )
 
@@ -80,3 +81,4 @@ ament_export_targets(
 )
 
 ament_package()
+
