@@ -126,6 +126,9 @@ Test if everything is working:
     # generate ur10e urdf
     cd ~/your_path/simple_ur10e_description/urdf
     sh generate_urdf.sh ur10e.xacro ur10e.urdf
+
+    # build again the package to make the urdf visible
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
     ```
 
 2. Configure `robot_state_receiver.launch.py`:
