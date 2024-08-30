@@ -5,18 +5,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(rclcpp_action REQUIRED)
 find_package(ur_rtde REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(ur_ros_rtde_msgs REQUIRED)
-find_package(trajectory_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(tf2_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED) 
 find_package(tf2_ros REQUIRED) 
 find_package(ur_ros_rtde_simple_clients REQUIRED) 
@@ -29,15 +20,9 @@ include_directories(
 )
 
 set(dependencies
-  rclcpp
-  rclcpp_action
   ur_rtde
-  sensor_msgs
-  geometry_msgs
   ur_ros_rtde_msgs
-  trajectory_msgs
   std_srvs
-  tf2_msgs
   visualization_msgs
   tf2_ros
   ur_ros_rtde_simple_clients

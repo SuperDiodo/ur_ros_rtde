@@ -16,12 +16,6 @@
 #include <inttypes.h>
 #include <thread>
 
-// UR RTDE
-#include <ur_rtde/rtde_control_interface.h>
-#include <ur_rtde/rtde_io_interface.h>
-#include <ur_rtde/rtde_receive_interface.h>
-#include <ur_rtde/dashboard_client.h>
-
 using namespace std::placeholders;
 
 template <class T>
@@ -33,20 +27,11 @@ public:
 
   explicit command_server_template(rclcpp::Node::SharedPtr node,
                                    const std::string &action_name,
-                                   const internal_params &params,
-                                   std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control,
-                                   std::shared_ptr<ur_rtde::RTDEIOInterface> rtde_io,
-                                   std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive,
-                                   std::shared_ptr<ur_rtde::DashboardClient> dashboard_client)
+                                   const std::function<void(const std::shared_ptr<rclcpp_action::ServerGoalHandle<T>>)> execute_function)
   {
-
-    rtde_control_ = rtde_control;
-    rtde_io_ = rtde_io;
-    rtde_receive_ = rtde_receive;
-    dashboard_client_ = dashboard_client;
     node_ = node;
-    params_ = params;
     action_name_ = action_name;
+    execute_function_ = execute_function;
 
     action_server_ = rclcpp_action::create_server<T>(
         node,
@@ -61,11 +46,7 @@ private:
 
   rclcpp::Node::SharedPtr node_;
   std::string action_name_;
-  internal_params params_;
-  std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control_;
-  std::shared_ptr<ur_rtde::RTDEIOInterface> rtde_io_;
-  std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive_;
-  std::shared_ptr<ur_rtde::DashboardClient> dashboard_client_;
+  std::function<void(const std::shared_ptr<rclcpp_action::ServerGoalHandle<T>>)> execute_function_;
 
   rclcpp_action::GoalResponse handle_goal(
       const rclcpp_action::GoalUUID &uuid,
@@ -84,8 +65,10 @@ private:
 
   void handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<T>> goal_handle)
   {
-    using namespace std::placeholders;
-    std::thread{std::bind(&command_server_template::execute, this, _1), goal_handle}.detach();
+    auto execute_function = execute_function_;
+    std::thread([execute_function, goal_handle]() {
+      execute_function(goal_handle);
+    }).detach();
   }
 
   void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<T>> goal_handle);

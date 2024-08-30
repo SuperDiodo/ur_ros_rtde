@@ -2,38 +2,49 @@
 #include <ur_ros_rtde_msgs/action/is_program_saved.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
-template <>
-void dashboard_server_template<ur_ros_rtde_msgs::action::IsProgramSaved>::execute(
-    const std::shared_ptr<rclcpp_action::ServerGoalHandle<ur_ros_rtde_msgs::action::IsProgramSaved>> goal_handle)
-{
+// ---------- PLUGIN INFO ------------------
+#define PLUGIN_NAME "is_program_saved_dashboard_command"
+#define PLUGIN_CLASS_NAME IsProgramSaved
+using action_type = ur_ros_rtde_msgs::action::IsProgramSaved;
+// -----------------------------------------
+
+void execute_function_impl(
+    const std::shared_ptr<rclcpp_action::ServerGoalHandle<action_type>> goal_handle,
+    rclcpp::Node::SharedPtr node,
+    std::shared_ptr<ur_rtde::DashboardClient> dashboard_client)
+{ 
+  // ---------- PLUGIN BEHAVIOUR ----------
   auto result = std::make_shared<ur_ros_rtde_msgs::action::IsProgramSaved::Result>();
   bool succeded = true;
 
   try
   {
-    result->result = dashboard_client_->isProgramSaved();
+    result->result = dashboard_client->isProgramSaved();
   }
   catch (...)
   {
     succeded = false;
   }
 
-  RCLCPP_INFO(self::node_->get_logger(), (succeded ? "%s succeeded" : "%s failed"), action_name_.c_str());
+  RCLCPP_INFO(node->get_logger(), (succeded ? "%s succeeded" : "%s failed"), PLUGIN_NAME);
   succeded ? goal_handle->succeed(result) : goal_handle->abort(result);
-};
+  // -----------------------------------------
+}
 
-class IsProgramSaved : public ur_ros_rtde_dashboard_command
+class PLUGIN_CLASS_NAME : public ur_ros_rtde_dashboard_command
 {
 public:
-  void start_action_server(rclcpp::Node::SharedPtr node,
-                           std::shared_ptr<ur_rtde::DashboardClient> dashboard_client) override
+  void start_action_server(
+      rclcpp::Node::SharedPtr node,
+      std::shared_ptr<ur_rtde::DashboardClient> dashboard_client) override
   {
-    server_ = std::make_unique<dashboard_server_template<ur_ros_rtde_msgs::action::IsProgramSaved>>(
-        node, "is_program_saved_dashboard_command", dashboard_client);
-  };
+    auto bound_execute_function = std::bind(execute_function_impl, std::placeholders::_1, node, dashboard_client);
+    server_ = std::make_unique<command_server_template<action_type>>(
+        node, PLUGIN_NAME, bound_execute_function);
+  }
 
 private:
-  std::unique_ptr<dashboard_server_template<ur_ros_rtde_msgs::action::IsProgramSaved>> server_;
+  std::unique_ptr<command_server_template<action_type>> server_;
 };
 
-PLUGINLIB_EXPORT_CLASS(IsProgramSaved, ur_ros_rtde_dashboard_command)
+PLUGINLIB_EXPORT_CLASS(PLUGIN_CLASS_NAME, ur_ros_rtde_dashboard_command)

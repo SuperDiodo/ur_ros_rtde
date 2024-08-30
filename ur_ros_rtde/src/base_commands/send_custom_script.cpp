@@ -1,11 +1,11 @@
 #include <ur_ros_rtde/command_base_class.hpp>
-#include <ur_ros_rtde_msgs/action/set_speed_slider.hpp>
+#include <ur_ros_rtde_msgs/action/send_custom_script.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
 // ---------- PLUGIN INFO ------------------
-#define PLUGIN_NAME "set_speed_slider_command"
-#define PLUGIN_CLASS_NAME SetSpeedSlider
-using action_type = ur_ros_rtde_msgs::action::SetSpeedSlider;
+#define PLUGIN_NAME "send_custom_script_command"
+#define PLUGIN_CLASS_NAME SendCustomScript
+using action_type = ur_ros_rtde_msgs::action::SendCustomScript;
 // -----------------------------------------
 
 void execute_function_impl(
@@ -15,17 +15,18 @@ void execute_function_impl(
     std::shared_ptr<ur_rtde::RTDEIOInterface> rtde_io,
     std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive,
     std::shared_ptr<ur_rtde::DashboardClient> dashboard_client)
-{
-    // ---------- PLUGIN BEHAVIOUR ----------
-    (void)rtde_control;
-    (void)rtde_receive;
-    (void)dashboard_client;
+{ 
+  // ---------- PLUGIN BEHAVIOUR ----------
+  (void) rtde_io;
+  (void) rtde_receive;
+  (void) dashboard_client;
 
-    const auto goal = goal_handle->get_goal();
-    auto result = std::make_shared<ur_ros_rtde_msgs::action::SetSpeedSlider::Result>();
-    result->result = rtde_io->setSpeedSlider(goal->speedslider);
-    RCLCPP_INFO(node->get_logger(), (result->result ? "%s succeeded" : "%s failed"), PLUGIN_NAME);
-    result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
+  const auto goal = goal_handle->get_goal();
+  auto result = std::make_shared<ur_ros_rtde_msgs::action::SendCustomScript::Result>();
+  check_control_interface_connection(rtde_control, node);
+  result->result = rtde_control->sendCustomScript(goal->request);
+  RCLCPP_INFO(node->get_logger(), (result->result ? "%s succeeded" : "%s failed"), PLUGIN_NAME);
+  result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
   // -----------------------------------------
 }
 

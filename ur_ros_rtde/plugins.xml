@@ -5,9 +5,6 @@
   <class type="ExecuteTrajectory" base_class_type="ur_ros_rtde_command">
     <description>ExecuteTrajectory command.</description>
   </class>
-  <class type="ExecuteTrajectory2" base_class_type="ur_ros_rtde_command">
-    <description>ExecuteTrajectory2 command.</description>
-  </class>
   <class type="MoveJRelative" base_class_type="ur_ros_rtde_command">
     <description>MoveJRelative command.</description>
   </class>

@@ -86,9 +86,10 @@ Additionally, install the following packages:
 
   ```bash
   sudo apt install ros-humble-moveit
+  echo "export LC_NUMERIC=en_US.UTF-8" >> ~/.bashrc
+  (optional)
   sudo apt install ros-$ROS_DISTRO-rmw-cyclonedds-cpp
   echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ~/.bashrc
-  echo "export LC_NUMERIC=en_US.UTF-8" >> ~/.bashrc
   ```
 
 ### Setup ROS2 interfaces
@@ -96,19 +97,18 @@ Additionally, install the following packages:
 # clone ur_ros_rtde repository
 git clone https://github.com/SuperDiodo/ur_ros_rtde.git
 
-# build ur_ros_rtde_msgs
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_msgs
+# build ur_ros_rtde
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde
+
+(Optional but recommended)
 
 # build ur_ros_rtde_simple_clients
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_simple_clients
 
-# build ur_ros_rtde_gripper_commands
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_gripper_commands
-
-# build ur_ros_rtde
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde
-
 (Optional)
+
+# (optional) build ur_ros_rtde_gripper_commands
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select ur_ros_rtde_gripper_commands
 
 # build simple_ur10e_description, i.e. ur10e meshes and xacro files
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-select simple_ur10e_description
@@ -133,7 +133,9 @@ For further details and documentation, please visit [`ur_ros_rtde`](https://gith
 
 Test if everything is working:
 
-1. Ensure that `simple_ur10e_description` is compiled and then generate UR10e urdf file from xacro files.
+1. Ensure that the optional packages are compiled.
+
+2. In `simple_ur10e_description` generate UR10e urdf file from xacro files.
     ```bash
     # generate ur10e urdf
     cd ~/your_path/simple_ur10e_description/urdf
@@ -188,44 +190,60 @@ In `ur_ros_rtde/src/base_commands` and `ur_ros_rtde/src/base_dashboard_commands`
 An example of commands that can be defined in custom ROS2 packages is reported in `ur_ros_rtde_gripper_commands`, an initial tutorial on plugin can be found [here](https://docs.ros.org/en/foxy/Tutorials/Beginner-Client-Libraries/Pluginlib.html).
 
 Basically:
-1. create a ROS2 package containing a `plugin.xml` file in which the plugins are declared. Use as template `ur_ros_rtde_gripper_commands`.
-2. create new plugins as `ur_ros_rtde_command` or `ur_ros_rtde_dashboard_command` subclass:
+1. create a ROS2 package containing a `plugin.xml` file in which the plugins are declared (use `ur_ros_rtde_gripper_commands` as example).
+2. create new plugins as `ur_ros_rtde_command` or `ur_ros_rtde_dashboard_command` subclass. Below there is an example of the template for a `ur_ros_rtde_command` new plugin.
     ```cpp
+    #include <ur_ros_rtde/command_base_class.hpp>
+    #include <pluginlib/class_list_macros.hpp>
+    #include </* your action */>
 
     // < EXAMPLE OF ur_ros_rtde_command DEFINITION>
+    ...
+    // ----- PLUGIN INFO (CHANGE HERE!) --------
+    #define PLUGIN_NAME "your_command"
+    #define PLUGIN_CLASS_NAME YourCommand
+    using action_type = /*action type*/;
+    // -----------------------------------------
 
-    #include <ur_ros_rtde/command_base_class.hpp>
-    #include <ur_ros_rtde_msgs/action/your_action.hpp> // your action header file
-    #include <pluginlib/class_list_macros.hpp>
+    void execute_function_impl(
+        const std::shared_ptr<rclcpp_action::ServerGoalHandle<action_type>> goal_handle,
+        rclcpp::Node::SharedPtr node,
+        std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control,
+        std::shared_ptr<ur_rtde::RTDEIOInterface> rtde_io,
+        std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive,
+        std::shared_ptr<ur_rtde::DashboardClient> dashboard_client)
+    { 
+      // ---------- PLUGIN BEHAVIOUR ----------
+      //      implement your plugin here!
+      // -----------------------------------------
+    }
 
-    template <>
-    void command_server_template<ur_ros_rtde_msgs::action::YoruAction>::execute(
-        const std::shared_ptr<rclcpp_action::ServerGoalHandle<ur_ros_rtde_msgs::action::YoruAction>> goal_handle)
-    {
-      // action behaviour
-    };
-
-    class YoruAction : public ur_ros_rtde_command
+    class PLUGIN_CLASS_NAME : public ur_ros_rtde_command
     {
     public:
-      void start_action_server(rclcpp::Node::SharedPtr node,
-                              const internal_params &params,
-                              std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control,
-                              std::shared_ptr<ur_rtde::RTDEIOInterface> rtde_io,
-                              std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive,
-                              std::shared_ptr<ur_rtde::DashboardClient> dashboard_client) override
+      void start_action_server(
+          rclcpp::Node::SharedPtr node,
+          std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control,
+          std::shared_ptr<ur_rtde::RTDEIOInterface> rtde_io,
+          std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive,
+          std::shared_ptr<ur_rtde::DashboardClient> dashboard_client) override
       {
-        server_ = std::make_unique<command_server_template<ur_ros_rtde_msgs::action::YoruAction>>(
-            node, "your_action_command", params, rtde_control, rtde_io, rtde_receive, dashboard_client);
-      };
+        auto bound_execute_function = std::bind(execute_function_impl, std::placeholders::_1, node, rtde_control, rtde_io, rtde_receive, dashboard_client);
+        server_ = std::make_unique<command_server_template<action_type>>(
+            node, PLUGIN_NAME, bound_execute_function);
+      }
 
     private:
-      std::unique_ptr<command_server_template<ur_ros_rtde_msgs::action::YoruAction>> server_;
+      std::unique_ptr<command_server_template<action_type>> server_;
     };
 
-    PLUGINLIB_EXPORT_CLASS(YoruAction, ur_ros_rtde_command)
+    PLUGINLIB_EXPORT_CLASS(PLUGIN_CLASS_NAME, ur_ros_rtde_command)
     ```
-3. Compile the package and, it everything worked, `command_server` or `dashboard server` will automatically load the new plugins. 
+  
+  
+  Basically, you have to add the include for an action that will be exposed with an action server, change the plugin info ad the implementation. The remaining part is the same for each plugin.
+
+3. Compile the package and, if everything worked, `command_server` or `dashboard server` will automatically load the new plugins. 
 
 ---
 ## Integration of `ur_ros_rtde` and MoveIt!

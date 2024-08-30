@@ -6,13 +6,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
-find_package(action_msgs REQUIRED)
-find_package(builtin_interfaces REQUIRED)
 find_package(pluginlib REQUIRED) 
 find_package(ur_ros_rtde REQUIRED) 
 find_package(ur_rtde REQUIRED)
@@ -23,11 +18,8 @@ include_directories(
 )
 
 set(dependencies
-  rclcpp
   rclcpp_action
   geometry_msgs
-  action_msgs
-  builtin_interfaces
   pluginlib
 )
 

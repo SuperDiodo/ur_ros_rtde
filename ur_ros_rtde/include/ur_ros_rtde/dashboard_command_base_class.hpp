@@ -2,7 +2,7 @@
 #define BASE_DASHBOARD_COMMAND_CLASS_HPP
 
 #include <ur_ros_rtde/utils.hpp>
-#include <ur_ros_rtde/dahsboard_server_template.hpp>
+#include <ur_ros_rtde/command_server_template.hpp>
 
 class ur_ros_rtde_dashboard_command
 {

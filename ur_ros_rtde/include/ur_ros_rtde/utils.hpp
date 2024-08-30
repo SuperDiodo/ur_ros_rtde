@@ -13,22 +13,6 @@
 #include <geometry_msgs/msg/pose.hpp>
 #include <iostream>
 
-typedef struct{
-  int suction_pin = 0;
-  int deposit_pin = 1;
-  int move_until_force_collision_check_freq = 25;
-  int servoJ_gain = 100;
-  double servoJ_lookahead_time = 0.2;
-  double servoJ_timestep = 0.002;
-  int receiver_freq = 100;
-  int deviation_check_freq = 100;
-  double max_deviation = 0.15;
-  double parametrization_timestep = 0.002;
-  int grip_bool_input_register = 19;
-  int desired_width_input_register = 18;
-  int feedback_width_output_register = 18;
-} internal_params;
-
 static void check_control_interface_connection(std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control, rclcpp::Node::SharedPtr node) __attribute__((unused));
 inline void check_control_interface_connection(std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control, rclcpp::Node::SharedPtr node)
 {
