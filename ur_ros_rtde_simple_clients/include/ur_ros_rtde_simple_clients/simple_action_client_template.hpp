@@ -130,6 +130,70 @@ public:
     }
   }
 
+  template <class T>
+  bool send_goal(const std::string &action_server_name, const typename T::Goal &goal_msg, typename T::Result &result_msg,
+                 const std::function<void(const std::shared_ptr<const typename T::Feedback> feedback)> feedback_function)
+  {
+    typename rclcpp_action::Client<T>::SharedPtr client_ptr = rclcpp_action::create_client<T>(node_, action_server_name);
+
+
+    while (!client_ptr->wait_for_action_server(1s))
+    {
+      if(!rclcpp::ok()){
+        if(verbose_) RCLCPP_ERROR(node_->get_logger(), "interrupted while waiting for the action server %s", action_server_name.c_str());
+        return false;
+      }
+      if(verbose_) RCLCPP_INFO(node_->get_logger(), "Action server %s not available after waiting 1 second", action_server_name.c_str());
+    }
+
+    if(verbose_) RCLCPP_INFO(node_->get_logger(), "Action server %s reached", action_server_name.c_str());
+
+    // configure feedback function
+    typedef rclcpp_action::ClientGoalHandle<T> GoalHandle;
+    typename rclcpp_action::Client<T>::SendGoalOptions goal_options;
+    goal_options.feedback_callback = [&feedback_function](typename GoalHandle::SharedPtr,
+                                                          const std::shared_ptr<const typename T::Feedback> feedback)
+                                                          {feedback_function(feedback); };
+
+    // Send the goal and wait for the result
+    auto send_goal_future = client_ptr->async_send_goal(goal_msg, goal_options);
+    if (rclcpp::spin_until_future_complete(node_, send_goal_future) !=
+        rclcpp::FutureReturnCode::SUCCESS)
+    {
+      if(verbose_) RCLCPP_ERROR(node_->get_logger(), "Failed to send goal to action server %s", action_server_name.c_str());
+      return false;
+    }
+
+    auto goal_handle = send_goal_future.get();
+    if (!goal_handle)
+    {
+      if(verbose_) RCLCPP_ERROR(node_->get_logger(), "Goal was rejected by action server %s", action_server_name.c_str());
+      return false;
+    }
+
+    // Wait for the result
+    auto result_future = client_ptr->async_get_result(goal_handle);
+    if (rclcpp::spin_until_future_complete(node_, result_future) !=
+        rclcpp::FutureReturnCode::SUCCESS)
+    {
+      if(verbose_) RCLCPP_ERROR(node_->get_logger(), "Failed to get result from %s", action_server_name.c_str());
+      return false;
+    }
+
+    auto result = result_future.get();
+    result_msg = *(result.result);
+    if (result.code == rclcpp_action::ResultCode::SUCCEEDED)
+    {
+      if(verbose_) RCLCPP_INFO(node_->get_logger(), "Result received from action server %s", action_server_name.c_str());
+      return true;
+    }
+    else
+    {
+      if(verbose_) RCLCPP_ERROR(node_->get_logger(), "Action server %s action did not succeed", action_server_name.c_str());
+      return true;
+    }
+  }
+
 private:
   rclcpp::Node::SharedPtr node_;
   bool verbose_;

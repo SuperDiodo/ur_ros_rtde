@@ -8,4 +8,5 @@ float64 deceleration
 bool result
 ---
 # feedback
+uint64 reached_waypoint
 

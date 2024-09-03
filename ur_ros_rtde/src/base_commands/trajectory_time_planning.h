@@ -82,10 +82,64 @@ struct JointTrajFrag
   double accel;
   double time_start;
   double time_end;
-  std::shared_ptr<const std::string> comment;
+
+  enum class Primitive
+  {
+    UNDEFINED,
+    ACCEL_PLATEAU,
+    PLATEAU_ACCEL,
+    TRAPEZOID,
+    RAMP_UD,
+    RAMP_UUD,
+    RAMP_UDD,
+    END,
+  };
+
+  struct Comment
+  {
+    uint64_t waypoint = 0;
+    uint64_t joint = 0;
+    Primitive primitive = Primitive::UNDEFINED;
+    std::string action;
+
+    Comment() {}
+
+    Comment(const uint64_t waypoint, const Primitive primitive, const std::string & action):
+      waypoint(waypoint), primitive(primitive), action(action) {}
+
+    std::shared_ptr<const Comment> withWaypoint(const uint64_t waypoint) const
+    {
+      std::shared_ptr<Comment> result = std::make_shared<Comment>(*this);
+      result->waypoint = waypoint;
+      return result;
+    }
+
+    std::shared_ptr<const Comment> withJoint(const uint64_t joint) const
+    {
+      std::shared_ptr<Comment> result = std::make_shared<Comment>(*this);
+      result->joint = joint;
+      return result;
+    }
+
+    std::shared_ptr<const Comment> withAction(const std::string & action) const
+    {
+      std::shared_ptr<Comment> result = std::make_shared<Comment>(*this);
+      result->action = action;
+      return result;
+    }
+
+    std::shared_ptr<const Comment> withPrimitive(const Primitive primitive) const
+    {
+      std::shared_ptr<Comment> result = std::make_shared<Comment>(*this);
+      result->primitive = primitive;
+      return result;
+    }
+  };
+
+  std::shared_ptr<const Comment> comment;
 
   JointTrajFrag(const double start, const double end, const double v_start, const double v_end,
-                const double accel, const double time_start, const double time_end, const std::shared_ptr<const std::string> comment)
+                const double accel, const double time_start, const double time_end, const std::shared_ptr<const Comment> comment)
     :start(start), end(end), v_start(v_start), v_end(v_end), accel(accel), time_start(time_start), time_end(time_end),
      comment(comment) {}
 };
@@ -94,17 +148,17 @@ struct JointTrajSample
 {
   double s;
   double t;
-  std::shared_ptr<const std::string> comment;
+  std::shared_ptr<const JointTrajFrag::Comment> comment;
 
   JointTrajSample() {}
-  JointTrajSample(double s, double t, const std::shared_ptr<const std::string> comment): s(s), t(t), comment(comment) {}
+  JointTrajSample(double s, double t, const std::shared_ptr<const JointTrajFrag::Comment> comment): s(s), t(t), comment(comment) {}
 };
 
 struct TrajectorySample
 {
   Array6d p;
   double t;
-  std::array<std::shared_ptr<const std::string>, NUM_JOINTS> comments;
+  std::array<std::shared_ptr<const JointTrajFrag::Comment>, NUM_JOINTS> comments;
 };
 
 inline
@@ -122,9 +176,13 @@ bool build_traj_primitive_accel_plateau(const double start, const double end, co
   (void)(v_max); // prevent unused warning
   fragments.clear();
 
-  static const std::shared_ptr<const std::string> comment_accel = std::make_shared<const std::string>("ap_a");
-  static const std::shared_ptr<const std::string> comment_plateau = std::make_shared<const std::string>("ap_p");
-  static const std::shared_ptr<const std::string> comment_nothing = std::make_shared<const std::string>("ap_n");
+  typedef JointTrajFrag::Primitive Primitive;
+  typedef JointTrajFrag::Comment Comment;
+
+  static const std::shared_ptr<const Comment> comment = Comment().withPrimitive(Primitive::ACCEL_PLATEAU);
+  static const std::shared_ptr<const Comment> comment_accel = comment->withAction("a");
+  static const std::shared_ptr<const Comment> comment_plateau = comment->withAction("p");
+  static const std::shared_ptr<const Comment> comment_nothing = comment->withAction("n");
 
   if (std::abs(start - end) < EPSILON && std::abs(v_end - v_start) < EPSILON)
   {
@@ -189,9 +247,13 @@ bool build_traj_primitive_plateau_accel(const double start, const double end, co
 
   fragments.clear();
 
-  static const std::shared_ptr<const std::string> comment_plateau = std::make_shared<const std::string>("pa_p");
-  static const std::shared_ptr<const std::string> comment_accel = std::make_shared<const std::string>("pa_a");
-  static const std::shared_ptr<const std::string> comment_nothing = std::make_shared<const std::string>("pa_n");
+  typedef JointTrajFrag::Primitive Primitive;
+  typedef JointTrajFrag::Comment Comment;
+
+  static const std::shared_ptr<const Comment> comment = Comment().withPrimitive(Primitive::PLATEAU_ACCEL);
+  static const std::shared_ptr<const Comment> comment_accel = comment->withAction("a");
+  static const std::shared_ptr<const Comment> comment_plateau = comment->withAction("p");
+  static const std::shared_ptr<const Comment> comment_nothing = comment->withAction("n");
 
   if (std::abs(start - end) < EPSILON && std::abs(v_end - v_start) < EPSILON)
   {
@@ -247,20 +309,23 @@ bool build_traj_primitive_trapezoid(const double start, const double end, const 
                                     const double v_end, const double time_start, const double time_end,
                                     const double v_max, const double a_max, std::vector<JointTrajFrag> & fragments)
 {
-  //            /---v2------\-a_max
-  //           /a_max        \-a_max
-  //  v0------/               \------v0
-  //  |t0     |t1|   t2     |t1|t0     |
-  //  |s0     |s1|   s2     |s1|s0     |
+  //    /---v_max---\-a
+  //   /a            \-a
+  //  /               \-a
+  //  |t1|   t2     |t1|
+  //  |s1|   s2     |s1|
 
   fragments.clear();
 
-  static const std::shared_ptr<const std::string> comment_plateau0 = std::make_shared<const std::string>("tp_p0");
-  static const std::shared_ptr<const std::string> comment_accel1 = std::make_shared<const std::string>("tp_a1");
-  static const std::shared_ptr<const std::string> comment_plateau2 = std::make_shared<const std::string>("tp_p2");
-  static const std::shared_ptr<const std::string> comment_accel3 = std::make_shared<const std::string>("tp_a3");
-  static const std::shared_ptr<const std::string> comment_plateau4 = std::make_shared<const std::string>("tp_p4");
-  static const std::shared_ptr<const std::string> comment_nothing = std::make_shared<const std::string>("tp_n");
+  typedef JointTrajFrag::Primitive Primitive;
+  typedef JointTrajFrag::Comment Comment;
+
+  static const std::shared_ptr<const Comment> comment = Comment().withPrimitive(Primitive::TRAPEZOID);
+
+  static const std::shared_ptr<const Comment> comment_accel1 = comment->withAction("a1");
+  static const std::shared_ptr<const Comment> comment_plateau2 = comment->withAction("p2");
+  static const std::shared_ptr<const Comment> comment_accel3 = comment->withAction("a3");
+  static const std::shared_ptr<const Comment> comment_nothing = comment->withAction("n");
 
   if (std::abs(v_end - v_start) >= EPSILON)
     return false; // only v_end == v_start is supported
@@ -276,44 +341,38 @@ bool build_traj_primitive_trapezoid(const double start, const double end, const 
   const double s = end - start;
 
   const double t = time_end - time_start;
-  const double a = a_max * sign(s);
   const double v2 = v_max * sign(s);
-  double t1 = (v2 - v_start) / a;
+
+  double t1 = (t * v2 - s) / (v2 - v_start);
   if (t1 < -EPSILON)
     return false;
   if (t1 < 0.0) t1 = 0.0;
-  const double s1a = 0.5 * a * SQR(t1);
-  double t2 = (s - 2.0 * s1a - t * v_start) / (v2 - v_start);
-  double t0 = (t - 2.0 * t1 - t2) / 2.0;
-  if (t0 < -EPSILON)
-    return false;
-  if (t0 < 0.0) t0 = 0.0;
+  const double a = (t1 < EPSILON) ? 0.0 : ((v2 - v_start) / t1);
+  if (std::abs(a) > a_max)
+    return false; // too high acceleration required
+
+  double t2 = t - 2.0 * t1;
   if (t2 < -EPSILON)
     return false;
   if (t2 < 0.0) t2 = 0.0;
 
-  const double s0 = v_start * t0;
   const double s1 = 0.5 * a * SQR(t1) + v_start * t1;
   const double s2 = v2 * t2;
+  const double s3 = 0.5 * a * SQR(t1) + v_start * t1;
 
-  const double end_check = start + 2.0 * v_start * t0 + 2.0 * v_start * t1 + 2.0 * 0.5 * a * SQR(t1) + v2 * t2;
+  const double end_check = start + s1 + s2 + s3;
 
   if (std::abs(end_check - end) > 10.0 * EPSILON)
     return false; // self consistency fail
 
-  if (t0 != 0.0)
-    fragments.push_back(JointTrajFrag(start, start + s0, v_start, v_start, 0.0, time_start, time_start + t0, comment_plateau0));
   if (t1 != 0.0)
-    fragments.push_back(JointTrajFrag(start + s0, start + s0 + s1, v_start, v2, a, time_start + t0, time_start + t0 + t1, comment_accel1));
+    fragments.push_back(JointTrajFrag(start, start + s1, v_start, v2, a, time_start, time_start + t1, comment_accel1));
   if (t2 != 0.0)
-    fragments.push_back(JointTrajFrag(start + s0 + s1, start + s0 + s1 + s2, v2, v2, 0.0, time_start + t0 + t1,
-                                      time_start + t0 + t1 + t2, comment_plateau2));
+    fragments.push_back(JointTrajFrag(start + s1, end - s1, v2, v2, 0.0, time_start + t1,
+                                      time_end - t1, comment_plateau2));
   if (t1 != 0.0)
-    fragments.push_back(JointTrajFrag(start + s0 + s1 + s2, start + s0 + s1 + s2 + s1, v2, v_start, -a, time_start + t0 + t1 + t2,
-                                      time_start + t0 + t1 + t2 + t1, comment_accel3));
-  if (t0 != 0.0)
-    fragments.push_back(JointTrajFrag(start + s0 + s1 + s2 + s1, end, v_start, v_start, 0.0, time_start + t0 + t1 + t2 + t1,
-                                      time_end, comment_plateau4));
+    fragments.push_back(JointTrajFrag(end - s1, end, v2, v_start, -a, time_end - t1,
+                                      time_end, comment_accel3));
 
   return true;
 }
@@ -331,9 +390,14 @@ bool build_traj_primitive_ramp_up_down(const double start, const double end, con
 
   fragments.clear();
 
-  static const std::shared_ptr<const std::string> comment_accel0 = std::make_shared<const std::string>("ud_a0");
-  static const std::shared_ptr<const std::string> comment_accel1 = std::make_shared<const std::string>("ud_a1");
-  static const std::shared_ptr<const std::string> comment_nothing = std::make_shared<const std::string>("ud_n");
+  typedef JointTrajFrag::Primitive Primitive;
+  typedef JointTrajFrag::Comment Comment;
+
+  static const std::shared_ptr<const Comment> comment = Comment().withPrimitive(Primitive::RAMP_UD);
+
+  static const std::shared_ptr<const Comment> comment_accel0 = comment->withAction("a0");
+  static const std::shared_ptr<const Comment> comment_accel1 = comment->withAction("a1");
+  static const std::shared_ptr<const Comment> comment_nothing = comment->withAction("n");
 
   if (std::abs(v_end - v_start) >= EPSILON)
     return false; // only v_end == v_start is supported
@@ -387,8 +451,13 @@ bool build_traj_primitive_ramp_up_up_down(const double start, const double end, 
 
   fragments.clear();
 
-  static const std::shared_ptr<const std::string> comment_accel0 = std::make_shared<const std::string>("uud_a0");
-  static const std::shared_ptr<const std::string> comment_nothing = std::make_shared<const std::string>("uud_n");
+  typedef JointTrajFrag::Primitive Primitive;
+  typedef JointTrajFrag::Comment Comment;
+
+  static const std::shared_ptr<const Comment> comment = Comment().withPrimitive(Primitive::RAMP_UUD);
+
+  static const std::shared_ptr<const Comment> comment_accel0 = comment->withAction("u");
+  static const std::shared_ptr<const Comment> comment_nothing = comment->withAction("n");
 
   if (std::abs(start - end) < EPSILON)
   {
@@ -444,8 +513,13 @@ bool build_traj_primitive_ramp_up_down_down(const double start, const double end
 
   fragments.clear();
 
-  static const std::shared_ptr<const std::string> comment_accel0 = std::make_shared<const std::string>("udd_a0");
-  static const std::shared_ptr<const std::string> comment_nothing = std::make_shared<const std::string>("udd_n");
+  typedef JointTrajFrag::Primitive Primitive;
+  typedef JointTrajFrag::Comment Comment;
+
+  static const std::shared_ptr<const Comment> comment = Comment().withPrimitive(Primitive::RAMP_UDD);
+
+  static const std::shared_ptr<const Comment> comment_accel0 = comment->withAction("d");
+  static const std::shared_ptr<const Comment> comment_nothing = comment->withAction("n");
 
   if (std::abs(start - end) < EPSILON)
   {
@@ -774,7 +848,7 @@ bool trajectory_fragments_planning(const std::vector<Array6d> & trajectory, cons
 
       // update the comment
       for (JointTrajFrag & jtf : fragments)
-        jtf.comment.reset(new std::string(std::to_string(traj_i) + "_" + std::to_string(j) + "_" + (*jtf.comment)));
+        jtf.comment = jtf.comment->withWaypoint(traj_i)->withJoint(j);
 
       all_fragments.all_fragments[j].insert(all_fragments.all_fragments[j].end(), fragments.begin(), fragments.end());
     }
@@ -850,6 +924,19 @@ TrajectorySample trajectory_extract_sample(const TrajectoryFragments & fragments
 {
   trajectory_realign_fragment_indices(fragments, time_index, indices_cache, dt);
 
+  typedef JointTrajFrag::Comment Comment;
+  typedef JointTrajFrag::Primitive Primitive;
+
+  // pre-compute one end comment for each joint
+  // unscrupulous abuse of a lambda is happening here
+  static const std::vector<std::shared_ptr<const Comment> > end_comments = []() {
+    std::shared_ptr<const Comment> end_comment = Comment().withPrimitive(Primitive::END);
+    std::vector<std::shared_ptr<const Comment> > result(NUM_JOINTS);
+    for (size_t j = 0; j < NUM_JOINTS; j++)
+      result[j] = end_comment->withJoint(j);
+    return result;
+  }();
+
   TrajectorySample result;
   const double global_t = time_index * dt;
   result.t = global_t;
@@ -858,7 +945,7 @@ TrajectorySample trajectory_extract_sample(const TrajectoryFragments & fragments
     if (indices_cache[j] >= fragments.all_fragments[j].size()) // past the end of traj for this joint
     {
       result.p[j] = fragments.all_fragments[j].back().end;
-      result.comments[j] = std::shared_ptr<const std::string>(new std::string("end"));
+      result.comments[j] = end_comments[j];
     }
     else
     {

@@ -46,6 +46,13 @@ inline bool parameterize_traj(rclcpp::Node::SharedPtr node,
   return true;
 }
 
+inline std::shared_ptr<ur_ros_rtde_msgs::action::ExecuteTrajectory::Feedback> create_feedback(const uint64_t reached_waypoint)
+{
+  auto feedback = std::make_shared<ur_ros_rtde_msgs::action::ExecuteTrajectory::Feedback>();
+  feedback->reached_waypoint = reached_waypoint;
+  return feedback;
+}
+
 void execute_function_impl(
     const std::shared_ptr<rclcpp_action::ServerGoalHandle<action_type>> goal_handle,
     rclcpp::Node::SharedPtr node,
@@ -117,6 +124,10 @@ void execute_function_impl(
   const TrajectorySample start_p = trajectory_extract_sample(fragments, 0, p_cache, servo_j_timestep);
   rtde_control->moveJ(Array6dToVector(start_p.p), 0.2, 0.2);
   rtde_control->stopJ();
+
+  goal_handle->publish_feedback(create_feedback(0));
+  uint64_t feedback_prev_waypoint_id = 1;
+
   steady_clock::time_point t_start;
 
   std::ofstream file;
@@ -146,15 +157,22 @@ void execute_function_impl(
 
       const TrajectorySample prev_p = trajectory_extract_sample(fragments, waypoint_to_check, prev_p_cache, servo_j_timestep);
 
+      const uint64_t feedback_waypoint_id = prev_p.comments[0]->waypoint;
+      while (feedback_prev_waypoint_id < feedback_waypoint_id)
+      {
+        // we reached the previous waypoint, increase
+        goal_handle->publish_feedback(create_feedback(feedback_prev_waypoint_id));
+        feedback_prev_waypoint_id++;
+      }
+
       if (save_log)
       {
         for (auto p_j : prev_p.p)
           file << p_j << ",";
         for (auto q_j : q)
           file << q_j << ",";
-        std::stringstream ss(*p.comments[0].get());
-        std::getline(ss, underscore_token, '_');
-        curr_waypoint_id = underscore_token == "end" ? prev_waypoint_id + 1 : stoi(underscore_token);
+        curr_waypoint_id = (p.comments[0]->primitive == JointTrajFrag::Primitive::END) ?
+                            prev_waypoint_id + 1 : p.comments[0]->waypoint;
 
         if (curr_waypoint_id != prev_waypoint_id)
         {

@@ -7,6 +7,7 @@ endif()
 
 # find dependencies
 find_package(trajectory_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 set(dependencies
   trajectory_msgs
