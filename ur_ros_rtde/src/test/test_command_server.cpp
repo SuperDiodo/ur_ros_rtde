@@ -3,6 +3,10 @@
 
 /* INCLUDE ACTIONS TO USE */
 #include <ur_ros_rtde_msgs/action/move_l_relative.hpp>
+#include <ur_ros_rtde_msgs/action/move_l.hpp>
+#include <ur_ros_rtde_msgs/action/move_until_torque.hpp>
+#include <ur_ros_rtde_msgs/action/reset_force_torque_sensor.hpp>
+#include <ur_ros_rtde_msgs/action/set_freedrive.hpp>
 
 /* INCLUDE SERVICES TO USE */
 #include <ur_ros_rtde_msgs/srv/get_tcp_pose.hpp>
@@ -25,7 +29,6 @@ int main(int argc, char **argv)
   auto service_client = simple_service_client_template(node_srv);
 
   /* TEST SOMETHING HERE! */
-
   using GetTcpPoseSrv = ur_ros_rtde_msgs::srv::GetTcpPose;
   using MoveLRelativeAction = ur_ros_rtde_msgs::action::MoveLRelative;
 
@@ -54,13 +57,23 @@ int main(int argc, char **argv)
 
   auto goal_msg3 = MoveLRelativeAction::Goal();
   goal_msg3.position.x = 0.1;
-  goal_msg3.speed = 0.1;
+  goal_msg3.speed = 0.01;
   goal_msg3.acceleration = 0.1;
-  action_client.send_goal<MoveLRelativeAction>("ur_ros_rtde/move_l_relative_command", goal_msg3);
-  service_client.send_goal<GetTcpPoseSrv>("ur_ros_rtde/get_tcp_pose", request_msg, response_msg);
   print_pose(response_msg->pose);
 
-  /* -------------------- */
+  std::shared_ptr<rclcpp_action::ClientGoalHandle<MoveLRelativeAction>> goal_handle;
+  simple_action_client_template::async_goal_state<MoveLRelativeAction> goal_state;
+  action_client.send_goal_async<MoveLRelativeAction>("ur_ros_rtde/move_l_relative_command", goal_msg3, goal_state);
+
+  std::cout << "getting async action status" << std::endl;
+
+  while (!action_client.get_async_action_status("ur_ros_rtde/move_l_relative_command", goal_state))
+  {
+    std::cout << "action not finished yet" << std::endl;
+    rclcpp::sleep_for(std::chrono::milliseconds(100));
+  }
+  service_client.send_goal<GetTcpPoseSrv>("ur_ros_rtde/get_tcp_pose", request_msg, response_msg);
+  print_pose(response_msg->pose);
 
   rclcpp::shutdown();
   return 0;

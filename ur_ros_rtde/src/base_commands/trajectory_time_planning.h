@@ -12,7 +12,7 @@
 static constexpr size_t NUM_JOINTS = 6;
 typedef std::array<double, NUM_JOINTS> Array6d;
 typedef std::array<size_t, NUM_JOINTS> Array6size;
-static const Array6d joint_speed_limits = {2.09, 2.09, M_PI, M_PI, M_PI, M_PI};
+static const Array6d joint_speed_limits = {2.09, 2.09, 2.09, M_PI, M_PI, M_PI};
 static const Array6d ZEROS = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 static const Array6size ZERO_SIZES = {0, 0, 0, 0, 0, 0};
 static const double EPSILON = 0.0000001;
@@ -107,6 +107,30 @@ struct JointTrajFrag
     Comment(const uint64_t waypoint, const Primitive primitive, const std::string & action):
       waypoint(waypoint), primitive(primitive), action(action) {}
 
+    static std::string primitive_to_string(const Primitive primitive)
+    {
+      switch (primitive)
+      {
+        case Primitive::UNDEFINED:     return "undefined";
+        case Primitive::ACCEL_PLATEAU: return "acc-pla";
+        case Primitive::PLATEAU_ACCEL: return "pla-acc";
+        case Primitive::TRAPEZOID:     return "trapezoid";
+        case Primitive::RAMP_UD:       return "ramp-ud";
+        case Primitive::RAMP_UUD:      return "ramp-uud";
+        case Primitive::RAMP_UDD:      return "ramp-udd";
+        case Primitive::END:           return "end";
+      }
+
+      std::cerr << "JointTrajFrag::Comment::primitive_to_string: ???" << std::endl;
+      return "???";
+    }
+
+    std::string to_string() const
+    {
+      return std::to_string(waypoint) + "_j" + std::to_string(joint) + "_" +
+             primitive_to_string(primitive) + "_" + action;
+    }
+
     std::shared_ptr<const Comment> withWaypoint(const uint64_t waypoint) const
     {
       std::shared_ptr<Comment> result = std::make_shared<Comment>(*this);
@@ -157,7 +181,9 @@ struct JointTrajSample
 struct TrajectorySample
 {
   Array6d p;
+  Array6d v;
   double t;
+  bool reached = false;
   std::array<std::shared_ptr<const JointTrajFrag::Comment>, NUM_JOINTS> comments;
 };
 
@@ -227,6 +253,10 @@ bool build_traj_primitive_accel_plateau(const double start, const double end, co
     fragments.push_back(JointTrajFrag(start, start + s0, v_start, v_end, a, time_start, time_start + t0, comment_accel));
   if (t1 != 0.0)
     fragments.push_back(JointTrajFrag(start + s0, end, v_end, v_end, 0.0, time_start + t0, time_end, comment_plateau));
+
+  // ensure that the last fragment ends exactly at end time
+  if (!fragments.empty())
+    fragments.back().time_end = time_end;
 
   return true;
 }
@@ -301,6 +331,10 @@ bool build_traj_primitive_plateau_accel(const double start, const double end, co
   if (t1 != 0.0)
     fragments.push_back(JointTrajFrag(start + s0, end, v_start, v_end, a, time_start + t0, time_end, comment_accel));
 
+  // ensure that the last fragment ends exactly at end time
+  if (!fragments.empty())
+    fragments.back().time_end = time_end;
+
   return true;
 }
 
@@ -343,7 +377,7 @@ bool build_traj_primitive_trapezoid(const double start, const double end, const 
   const double t = time_end - time_start;
   const double v2 = v_max * sign(s);
 
-  double t1 = (t * v2 - s) / (v2 - v_start);
+  double t1 = (std::abs(v2 - v_start) < EPSILON) ? 0.0 : ((t * v2 - s) / (v2 - v_start));
   if (t1 < -EPSILON)
     return false;
   if (t1 < 0.0) t1 = 0.0;
@@ -369,10 +403,14 @@ bool build_traj_primitive_trapezoid(const double start, const double end, const 
     fragments.push_back(JointTrajFrag(start, start + s1, v_start, v2, a, time_start, time_start + t1, comment_accel1));
   if (t2 != 0.0)
     fragments.push_back(JointTrajFrag(start + s1, end - s1, v2, v2, 0.0, time_start + t1,
-                                      time_end - t1, comment_plateau2));
+                                      time_start + t1 + t2, comment_plateau2));
   if (t1 != 0.0)
-    fragments.push_back(JointTrajFrag(end - s1, end, v2, v_start, -a, time_end - t1,
+    fragments.push_back(JointTrajFrag(end - s1, end, v2, v_start, -a, time_start + t1 + t2,
                                       time_end, comment_accel3));
+
+  // ensure that the last fragment ends exactly at end time
+  if (!fragments.empty())
+    fragments.back().time_end = time_end;
 
   return true;
 }
@@ -557,6 +595,10 @@ bool build_traj_primitive_ramp_up_down_down(const double start, const double end
   fragments.insert(fragments.end(), ramp_ud_fragments.begin(), ramp_ud_fragments.end());
   if (t1 != 0.0)
     fragments.push_back(JointTrajFrag(end - s1, end, v_start, v_end, -signed_a_max, time_end - t1, time_end, comment_accel0));
+
+  // ensure that the last fragment ends exactly at end time
+  if (!fragments.empty())
+    fragments.back().time_end = time_end;
 
   return true;
 }
@@ -945,6 +987,7 @@ TrajectorySample trajectory_extract_sample(const TrajectoryFragments & fragments
     if (indices_cache[j] >= fragments.all_fragments[j].size()) // past the end of traj for this joint
     {
       result.p[j] = fragments.all_fragments[j].back().end;
+      result.v[j] = fragments.all_fragments[j].back().v_end;
       result.comments[j] = end_comments[j];
     }
     else
@@ -952,7 +995,9 @@ TrajectorySample trajectory_extract_sample(const TrajectoryFragments & fragments
       const JointTrajFrag & fragment = fragments.all_fragments[j][indices_cache[j]];
       const double t = global_t - fragment.time_start;
       double s = fragment.start + fragment.v_start * t + 0.5 * fragment.accel * SQR(t);
+      double v = fragment.v_start + fragment.accel * t;
       result.p[j] = s;
+      result.v[j] = v;
       result.comments[j] = fragment.comment;
     }
   }
@@ -971,11 +1016,19 @@ bool trajectory_time_planning(const std::vector<Array6d> & trajectory, const dou
                               std::vector<Array6d> & velocities, uint64_t & iterations, std::vector<TrajectorySample> & samples)
 {
   TrajectoryFragments fragments;
-  if (!trajectory_fragments_planning(trajectory, a_max, v_max, times, velocities, iterations, fragments))
+  if (!trajectory_fragments_planning(trajectory, a_max, v_max, times, velocities, iterations, fragments)){
+    std::cout << "Terminating execution, no trajectory fragments generated" << std::endl;
     return false;
+  }
 
   Array6size indices_cache = trajectory_create_cache();
   const size_t max_time_index = trajectory_get_num_trajectory_samples(fragments, dt);
+
+  if (max_time_index*dt > 24.0f * 3600.0f) {
+    std::cout << "Terminating execution, trajectory duration is longer than a day! (sanity check)" << std::endl;
+    return false;
+  }
+
   for (size_t i = 0; i < max_time_index; i++)
   {
     TrajectorySample sample = trajectory_extract_sample(fragments, i, indices_cache, dt);

@@ -22,14 +22,12 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
     auto node = rclcpp::Node::make_shared("ur_ros_rtde_command_server_node");
     auto robot_ip = node->declare_parameter<std::string>("robot_ip", "127.0.0.1");
-
-    rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip);
+    auto rtde_frequency = node->declare_parameter<double>("command_server" ".rtde_frequency", 500.0);
+    rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency);
+    rtde_receive = std::make_shared<ur_rtde::RTDEReceiveInterface>(robot_ip, rtde_frequency);
     rtde_io = std::make_shared<ur_rtde::RTDEIOInterface>(robot_ip);
-    rtde_receive = std::make_shared<ur_rtde::RTDEReceiveInterface>(robot_ip);
     dashboard_client = std::make_shared<ur_rtde::DashboardClient>(robot_ip);
-
     dashboard_client->connect();
-
     RCLCPP_INFO(node->get_logger(), "Init done, discovering plugins..");
 
     auto packages = ament_index_cpp::get_packages_with_prefixes();
