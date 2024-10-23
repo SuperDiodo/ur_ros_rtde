@@ -12,7 +12,6 @@
 static constexpr size_t NUM_JOINTS = 6;
 typedef std::array<double, NUM_JOINTS> Array6d;
 typedef std::array<size_t, NUM_JOINTS> Array6size;
-static const Array6d joint_speed_limits = {2.09, 2.09, 2.09, M_PI, M_PI, M_PI};
 static const Array6d ZEROS = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 static const Array6size ZERO_SIZES = {0, 0, 0, 0, 0, 0};
 static const double EPSILON = 0.0000001;
@@ -838,12 +837,12 @@ struct TrajectoryFragments
 };
 
 inline
-bool trajectory_fragments_planning(const std::vector<Array6d> & trajectory, const double a_max, const double v_max, std::vector<double> & times,
+bool trajectory_fragments_planning(const std::vector<Array6d> & trajectory, const double a_max, const double v_max, const double v_percentage, const Array6d joint_speed_limits, std::vector<double> & times,
                                    std::vector<Array6d> & velocities, uint64_t & iterations, TrajectoryFragments & all_fragments)
 {
   Array6d my_v_max(joint_speed_limits);
   for (double & v : my_v_max)
-    v = std::min(v, v_max);
+    v = v_percentage*std::min(v, v_max);
 
   times = get_times(trajectory, a_max, my_v_max, velocities, iterations);
 
@@ -1011,12 +1010,12 @@ inline Array6size trajectory_create_cache()
 }
 
 inline
-bool trajectory_time_planning(const std::vector<Array6d> & trajectory, const double a_max, const double v_max, const double dt,
+bool trajectory_time_planning(const std::vector<Array6d> & trajectory, const double a_max, const double v_max, const double v_percentage, const Array6d joint_speed_limits, const double dt,
                               std::vector<double> & times,
                               std::vector<Array6d> & velocities, uint64_t & iterations, std::vector<TrajectorySample> & samples)
 {
   TrajectoryFragments fragments;
-  if (!trajectory_fragments_planning(trajectory, a_max, v_max, times, velocities, iterations, fragments)){
+  if (!trajectory_fragments_planning(trajectory, a_max, v_max, v_percentage, joint_speed_limits, times, velocities, iterations, fragments)){
     std::cout << "Terminating execution, no trajectory fragments generated" << std::endl;
     return false;
   }

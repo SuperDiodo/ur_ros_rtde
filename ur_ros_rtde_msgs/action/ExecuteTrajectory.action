@@ -1,12 +1,13 @@
 # request
 Vector[] trajectory
-float64 speed
-float64 acceleration
-float64 deceleration
+float64 speed 0.1
+float64 acceleration 0.1
+float64 deceleration 1.0
+float64 speed_percentage 1.0
+float64[] joint_speed_limits [2.0944, 2.0944, 3.1416, 3.1416, 3.1416, 3.1416]
 ---
 # result
 bool result
 ---
 # feedback
 uint64 reached_waypoint
-

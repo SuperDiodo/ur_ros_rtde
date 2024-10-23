@@ -1,0 +1,11 @@
+# request
+Vector[] joint_positions
+Vector[] joint_velocities
+float64[] times
+float64 deceleration 1.0
+---
+# result
+bool result
+---
+# feedback
+uint64 reached_waypoint

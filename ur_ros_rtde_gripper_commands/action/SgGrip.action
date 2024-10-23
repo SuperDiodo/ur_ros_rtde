@@ -1,0 +1,10 @@
+# request
+float64 target_width
+bool gentle_grip
+int32 tool_index 0 
+bool blocking True
+bool depth_compensation False
+---
+# result
+bool result
+---

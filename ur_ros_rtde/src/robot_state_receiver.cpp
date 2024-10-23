@@ -34,6 +34,14 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
     switch_joint_state_type_service_ = node->create_service<SwitchServiceType>(param_string, std::bind(&robot_state_receiver::switch_joint_state_type_cb, this, _1, _2));
     RCLCPP_INFO(node->get_logger(), "Created service for switching between fake and real joint states..");
 
+    param_string = node_->declare_parameter<std::string>("start_data_recording_service_name", "start_data_recording");
+    start_data_recording_service_ = node->create_service<StartDataRecordingServiceType>(param_string, std::bind(&robot_state_receiver::start_data_recording_cb, this, _1, _2));
+    RCLCPP_INFO(node->get_logger(), "Created service for starting data recording..");
+
+    param_string = node_->declare_parameter<std::string>("stop_data_recording_service_name", "stop_data_recording");
+    stop_data_recording_service_ = node->create_service<StopDataRecordingServiceType>(param_string, std::bind(&robot_state_receiver::stop_data_recording_cb, this, _1, _2));
+    RCLCPP_INFO(node->get_logger(), "Created service for stopping data recording..");
+
     if (!simulation_only_)
     {
         param_string = node_->declare_parameter<std::string>("robot_ip", "127.0.0.1");
@@ -146,20 +154,7 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
 
 robot_state_receiver::~robot_state_receiver()
 {
-
     receiver_interface_->disconnect();
-
-    free(receiver_interface_);
-    delete (receiver_interface_);
-
-    free(robot_internal_state_);
-    delete (robot_internal_state_);
-
-    free(tcp_pose_);
-    delete (tcp_pose_);
-
-    free(robot_configuration_);
-    delete (robot_configuration_);
 }
 
 void robot_state_receiver::timer_callback()
@@ -204,36 +199,33 @@ void robot_state_receiver::timer_callback()
         }
         else
         {
-
-            if (robot_configuration_ == nullptr)
-            {
-                robot_configuration_ = new JointStateMsg;
-            }
-
             std::vector<double> robot_configuration = receiver_interface_->getActualQ();
+            std::vector<double> joint_velocities = receiver_interface_->getActualQd();
             JointStateMsg robot_configuration_msg;
             robot_configuration_msg.header.stamp = node_->now();
             robot_configuration_msg.name = joint_names_;
             robot_configuration_msg.header.frame_id = "world";
             robot_configuration_msg.position = robot_configuration;
-            robot_configuration_msg.velocity = std::vector<double>(joint_names_.size(), 0.0);
+            robot_configuration_msg.velocity = joint_velocities;
             robot_configuration_msg.effort = std::vector<double>(joint_names_.size(), 0.0);
             real_joint_state_pub_->publish(robot_configuration_msg);
             if (!publish_fake_joint_states)
                 last_fake_joint_state_msg_ = robot_configuration_msg;
             last_fake_joint_state_msg_.header.stamp = node_->now();
             joint_state_pub_->publish(publish_fake_joint_states ? last_fake_joint_state_msg_ : robot_configuration_msg);
+            if (!robot_configuration_)
+                robot_configuration_ = std::make_shared<JointStateMsg>();
             robot_configuration_->name = joint_names_;
             robot_configuration_->position = robot_configuration_msg.position;
+            robot_configuration_->velocity = robot_configuration_msg.velocity;
         }
     }
 
     // Receive and update internal robot state
     if (!simulation_only_)
     {
-        if (robot_internal_state_ == nullptr)
-            robot_internal_state_ = new internal_state;
-
+        if (!robot_internal_state_)
+            robot_internal_state_ = std::make_shared<internal_state>();
         robot_internal_state_->digital_input_state.clear();
         robot_internal_state_->digital_output_state.clear();
         for (int pin = 0; pin < 8; pin++)
@@ -244,16 +236,14 @@ void robot_state_receiver::timer_callback()
 
         robot_internal_state_->speed_slider_value = receiver_interface_->getSpeedScaling();
         robot_internal_state_->payload_value = receiver_interface_->getPayload();
-        robot_internal_state_->payload_value = 2.0;
     }
 
     // Receive and update flange pose
     if (!simulation_only_)
     {
-        if (tcp_pose_ == nullptr)
-            tcp_pose_ = new PoseMsg;
-
         std::vector<double> flange_pose = receiver_interface_->getActualTCPPose();
+        if (!tcp_pose_)
+            tcp_pose_ = std::make_shared<geometry_msgs::msg::Pose>();
         tcp_pose_->position.x = flange_pose[0];
         tcp_pose_->position.y = flange_pose[1];
         tcp_pose_->position.z = flange_pose[2];
@@ -283,9 +273,8 @@ void robot_state_receiver::timer_callback()
         forces = tcp_quat.inverse() * forces;
         torques = tcp_quat.inverse() * torques;
 
-        if (wrench_ == nullptr)
-            wrench_ = new WrenchMsg();
-
+        if (!wrench_)
+            wrench_ = std::make_shared<geometry_msgs::msg::WrenchStamped>();
         wrench_->header.stamp = node_->now();
         wrench_->header.frame_id = "world";
         wrench_->wrench.force.x = forces.x();
@@ -308,6 +297,50 @@ void robot_state_receiver::timer_callback()
 
         calibrated_camera_tf_pub_->publish(msg);
     }
+
+    // data recording
+    if (record_data_)
+    {
+        if (data_to_rec_.tcp_pose)
+        {
+            data_record_file_ << tcp_pose_->position.x << "," << tcp_pose_->position.y << "," << tcp_pose_->position.z << ",";
+            data_record_file_ << tcp_pose_->orientation.x << "," << tcp_pose_->orientation.y << "," << tcp_pose_->orientation.z << "," << tcp_pose_->orientation.w << ",";
+        }
+
+        if (data_to_rec_.wrench)
+        {
+            data_record_file_ << wrench_->wrench.force.x << "," << wrench_->wrench.force.y << "," << wrench_->wrench.force.z << ",";
+            data_record_file_ << wrench_->wrench.torque.x << "," << wrench_->wrench.torque.y << "," << wrench_->wrench.torque.z << ",";
+        }
+
+        if (data_to_rec_.joint_positions)
+        {
+            for (auto jp : robot_configuration_->position)
+                data_record_file_ << jp << ",";
+        }
+
+        if (data_to_rec_.joint_velocities)
+        {
+            for (auto jv : robot_configuration_->velocity)
+                data_record_file_ << jv << ",";
+        }
+
+        if (data_to_rec_.digital_pins_state)
+        {
+            for (auto in : robot_internal_state_->digital_input_state)
+                data_record_file_ << in << ",";
+            for (auto out : robot_internal_state_->digital_output_state)
+                data_record_file_ << out << ",";
+        }
+
+        if (data_to_rec_.payload_value)
+            data_record_file_ << robot_internal_state_->payload_value << ",";
+        if (data_to_rec_.speed_slider_value)
+            data_record_file_ << robot_internal_state_->speed_slider_value << ",";
+        data_record_file_ << std::endl;
+    }
+
+    timer_iterations_++;
 }
 
 void robot_state_receiver::subscriber_callback(const JointStateMsg::SharedPtr msg)
@@ -326,7 +359,7 @@ void robot_state_receiver::get_internal_state_cb(const std::shared_ptr<InternalS
 
     (void)request;
 
-    if (robot_internal_state_ == nullptr)
+    if (timer_iterations_ == 0)
     {
         response->success = false;
         return;
@@ -343,7 +376,7 @@ void robot_state_receiver::get_tcp_pose_cb(const std::shared_ptr<TcpPoseServiceT
 {
     (void)request;
 
-    if (tcp_pose_ == nullptr)
+    if (timer_iterations_ == 0)
     {
         response->success = false;
         return;
@@ -358,7 +391,7 @@ void robot_state_receiver::get_wrench_cb(const std::shared_ptr<WrenchServiceType
 {
     (void)request;
 
-    if (wrench_ == nullptr)
+    if (timer_iterations_ == 0)
     {
         response->success = false;
         return;
@@ -387,6 +420,55 @@ void robot_state_receiver::get_robot_configuration_cb(const std::shared_ptr<Robo
 
     response->names = robot_configuration_->name;
     response->values = robot_configuration_->position;
+    response->success = true;
+}
+
+void robot_state_receiver::start_data_recording_cb(const std::shared_ptr<StartDataRecordingServiceType::Request> request, std::shared_ptr<StartDataRecordingServiceType::Response> response)
+{
+
+    if (record_data_)
+    {
+        RCLCPP_WARN(node_->get_logger(), "Can't start recording data, it's already enabled! (data is actually saved in %s)", data_filename_.c_str());
+        response->success = true;
+        return;
+    }
+
+    data_to_rec_.digital_pins_state = request->save_digital_pins_state;
+    data_to_rec_.payload_value = request->save_payload_value;
+    data_to_rec_.joint_positions = request->save_joint_positions;
+    data_to_rec_.joint_velocities = request->save_joint_velocities;
+    data_to_rec_.speed_slider_value = request->save_speed_slider_value;
+    data_to_rec_.tcp_pose = request->save_tcp_pose;
+    data_to_rec_.wrench = request->save_wrench;
+    data_filename_ = std::string(request->filename);
+    data_record_file_.open(data_filename_);
+    if (data_to_rec_.tcp_pose)
+        data_record_file_ << "tcp_x,tcp_y,tcp_z,tcp_quat_x,tcp_quat_y,tcp_quat_z,tcp_quat_w,";
+    if (data_to_rec_.wrench)
+        data_record_file_ << "fx,fy,fz,tau_x,tau_y,tau_z,";
+    if (data_to_rec_.joint_positions)
+        data_record_file_ << "j1,j2,j3,j4,j5,j6,";
+    if (data_to_rec_.joint_velocities)
+        data_record_file_ << "v1,v2,v3,v4,v5,v6,";
+    if (data_to_rec_.digital_pins_state)
+        data_record_file_ << "DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DO0,DO1,DO2,DO3,DO4,DO5,DO6,DO7,";
+    data_record_file_ << (data_to_rec_.payload_value ? "payload_value," : "");
+    data_record_file_ << (data_to_rec_.speed_slider_value ? "speed_slider_value," : "");
+    data_record_file_ << std::endl;
+    record_data_ = true;
+    response->success = true;
+}
+
+void robot_state_receiver::stop_data_recording_cb(const std::shared_ptr<StopDataRecordingServiceType::Request> request, std::shared_ptr<StopDataRecordingServiceType::Response> response)
+{
+
+    (void)request;
+
+    if (record_data_)
+    {
+        record_data_ = false;
+        data_record_file_.close();
+    }
     response->success = true;
 }
 

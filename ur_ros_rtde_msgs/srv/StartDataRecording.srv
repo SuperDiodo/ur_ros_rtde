@@ -1,0 +1,12 @@
+# request
+string filename ""
+bool save_tcp_pose false
+bool save_wrench false
+bool save_joint_velocities false
+bool save_joint_positions false
+bool save_digital_pins_state false
+bool save_speed_slider_value false
+bool save_payload_value false
+---
+# result
+bool success

@@ -59,6 +59,7 @@ pluginlib_export_plugin_description_file(ur_ros_rtde plugins.xml)
 
 file(GLOB SOURCES "src/base_commands/*.cpp")
 
+if(SOURCES)
 add_library(base_commands_lib SHARED ${SOURCES})
 target_compile_features(base_commands_lib PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(base_commands_lib PUBLIC
@@ -74,6 +75,7 @@ install(
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
+endif()
 
 # Install dashboard_server
 add_executable(dashboard_server src/dashboard_server.cpp)
@@ -89,6 +91,7 @@ pluginlib_export_plugin_description_file(ur_ros_rtde plugins.xml)
 
 file(GLOB SOURCES "src/base_dashboard_commands/*.cpp")
 
+if(SOURCES)
 add_library(base_dashboard_commands_lib SHARED ${SOURCES})
 target_compile_features(base_dashboard_commands_lib PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(base_dashboard_commands_lib PUBLIC
@@ -104,6 +107,30 @@ install(
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
+endif()
+
+# Install base extension
+pluginlib_export_plugin_description_file(ur_ros_rtde plugins.xml)
+
+file(GLOB SOURCES "src/base_extensions/*.cpp")
+
+if(SOURCES)
+add_library(base_extension_lib SHARED ${SOURCES})
+target_compile_features(base_extension_lib PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(base_extension_lib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(base_extension_lib ${dependencies})
+target_link_libraries(base_extension_lib ${Eigen3_LIBRARIES} ur_rtde::rtde)
+
+install(
+  TARGETS base_extension_lib
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+endif()
 
 # Tests
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_command_server.cpp")
@@ -112,6 +139,15 @@ ament_target_dependencies(test_command_server ${dependencies})
 target_link_libraries(test_command_server ${Eigen3_LIBRARIES})
 install(TARGETS
 test_command_server
+DESTINATION lib/${PROJECT_NAME})
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_command_server.cpp")
+add_executable(test_pallettizzazione src/test/test_pallettizzazione.cpp)
+ament_target_dependencies(test_pallettizzazione ${dependencies})
+target_link_libraries(test_pallettizzazione ${Eigen3_LIBRARIES})
+install(TARGETS
+test_pallettizzazione
 DESTINATION lib/${PROJECT_NAME})
 endif()
 

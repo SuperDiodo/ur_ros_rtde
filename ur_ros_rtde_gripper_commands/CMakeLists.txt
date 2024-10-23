@@ -27,13 +27,16 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/SetSuction.action"
   "action/SetDeposit.action"
   "action/SoftGripperControl.action"
+  "action/SgGrip.action"
+  "action/SgRelease.action"
+  "action/SgGetWidth.action"
   DEPENDENCIES ${dependencies})
 
 pluginlib_export_plugin_description_file(ur_ros_rtde_gripper_commands plugins.xml)
 
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB COMMAND_SOURCES "src/commands/*.cpp")
 
-add_library(gripper_commands_lib SHARED ${SOURCES})
+add_library(gripper_commands_lib SHARED ${COMMAND_SOURCES})
 target_compile_features(gripper_commands_lib PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(gripper_commands_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -46,6 +49,27 @@ target_link_libraries(gripper_commands_lib ${typesupport_target_cpp} ${Eigen3_LI
 
 install(
   TARGETS gripper_commands_lib
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+file(GLOB EXTENSION_SOURCES "src/extensions/*.cpp")
+
+add_library(gripper_control_script_extension_lib SHARED ${EXTENSION_SOURCES})
+target_compile_features(gripper_control_script_extension_lib PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(gripper_control_script_extension_lib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(gripper_control_script_extension_lib ${dependencies})
+
+# Get the typesupport target and link it
+rosidl_get_typesupport_target(typesupport_target_cpp ${PROJECT_NAME} "rosidl_typesupport_cpp")
+target_link_libraries(gripper_control_script_extension_lib ${typesupport_target_cpp} ${Eigen3_LIBRARIES} ur_rtde::rtde)
+
+install(
+  TARGETS gripper_control_script_extension_lib
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -81,4 +105,3 @@ ament_export_targets(
 )
 
 ament_package()
-

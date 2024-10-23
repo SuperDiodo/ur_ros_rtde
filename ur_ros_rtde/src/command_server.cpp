@@ -3,9 +3,14 @@
 #include <iostream>
 #include <pluginlib/class_loader.hpp>
 #include <ur_ros_rtde/command_base_class.hpp>
+#include <ur_ros_rtde/extension_base_class.hpp>
 
 std::vector<std::shared_ptr<ur_ros_rtde_command>> commands;
-std::vector<std::unique_ptr<pluginlib::ClassLoader<ur_ros_rtde_command>>> class_loaders;
+std::vector<std::unique_ptr<pluginlib::ClassLoader<ur_ros_rtde_command>>> command_loaders;
+
+std::vector<std::shared_ptr<ur_ros_rtde_extension>> extensions;
+std::vector<std::unique_ptr<pluginlib::ClassLoader<ur_ros_rtde_extension>>> extension_loaders;
+
 std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control;
 std::shared_ptr<ur_rtde::RTDEIOInterface> rtde_io;
 std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive;
@@ -14,7 +19,9 @@ std::shared_ptr<ur_rtde::DashboardClient> dashboard_client;
 void cleanup()
 {
     commands.clear();
-    class_loaders.clear();
+    command_loaders.clear();
+    extensions.clear();
+    extension_loaders.clear();
 }
 
 int main(int argc, char **argv)
@@ -22,8 +29,13 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
     auto node = rclcpp::Node::make_shared("ur_ros_rtde_command_server_node");
     auto robot_ip = node->declare_parameter<std::string>("robot_ip", "127.0.0.1");
-    auto rtde_frequency = node->declare_parameter<double>("command_server" ".rtde_frequency", 500.0);
-    rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency);
+    auto rtde_frequency = node->declare_parameter<double>("command_server"
+                                                          ".rtde_frequency",
+                                                          500.0);
+    auto custom_control_script_filename = node->declare_parameter<std::string>("command_server"
+                                                                               ".custom_control_script_filename",
+                                                                               "");
+
     rtde_receive = std::make_shared<ur_rtde::RTDEReceiveInterface>(robot_ip, rtde_frequency);
     rtde_io = std::make_shared<ur_rtde::RTDEIOInterface>(robot_ip);
     dashboard_client = std::make_shared<ur_rtde::DashboardClient>(robot_ip);
@@ -35,23 +47,76 @@ int main(int argc, char **argv)
     {
         try
         {
-            auto class_loader = std::make_unique<pluginlib::ClassLoader<ur_ros_rtde_command>>(package.first, "ur_ros_rtde_command");
-            class_loaders.push_back(std::move(class_loader));
-
-            auto declared_classes = class_loaders.back()->getDeclaredClasses();
-            if (declared_classes.size() > 0)
-                std::cout << "Found ur_ros_rtde_command definitions in " << package.first << " package:" << std::endl;
-
-            for (auto dc : declared_classes)
+            if (custom_control_script_filename != "")
             {
-                std::cout << "\t" << class_loaders.back()->getClassType(dc) << ": " << class_loaders.back()->getClassDescription(dc) << std::endl;
-                commands.push_back(class_loaders.back()->createSharedInstance(dc));
-                commands.back()->start_action_server(node, rtde_control, rtde_io, rtde_receive, dashboard_client);
+                auto extension_loader = std::make_unique<pluginlib::ClassLoader<ur_ros_rtde_extension>>(package.first, "ur_ros_rtde_extension");
+                if (extension_loader->getDeclaredClasses().size() > 0)
+                {
+                    std::cout << "Found ur_ros_rtde_extension definitions in " << package.first << " package" << std::endl;
+                    extension_loaders.push_back(std::move(extension_loader));
+                }
+            }
+
+            auto command_loader = std::make_unique<pluginlib::ClassLoader<ur_ros_rtde_command>>(package.first, "ur_ros_rtde_command");
+            if (command_loader->getDeclaredClasses().size() > 0)
+            {
+                std::cout << "Found ur_ros_rtde_command definitions in " << package.first << " package" << std::endl;
+                command_loaders.push_back(std::move(command_loader));
             }
         }
         catch (pluginlib::PluginlibException &ex)
         {
             printf("The plugin failed to load for some reason. Error: %s\n", ex.what());
+        }
+    }
+
+    /* adapt control script with extension */
+    std::string temp_custom_control_script_filename = custom_control_script_filename;
+    if (custom_control_script_filename != "" && extension_loaders.size() > 0)
+    {
+        std::cout << "\nur_ros_rtde_extensions applied and activated:" << std::endl;
+        std::string control_script;
+        control_script = load_control_script(custom_control_script_filename);
+        add_control_script_preamble(control_script);
+        int extension_id = 1;
+        for (auto &ext : extension_loaders)
+        {
+            for (auto dc : ext->getDeclaredClasses())
+            {
+                std::cout << "\t" << ext->getClassType(dc) << ": " << ext->getClassDescription(dc) << std::endl;
+                auto extension_instance = ext->createSharedInstance(dc);
+                extension_instance->extension_id = extension_id++;
+                extension_instance->get_control_script_modifications().apply_to_script(control_script);
+                extension_instance->start_action_server(node, rtde_io, rtde_receive);
+                extensions.push_back(extension_instance);
+            }
+        }
+
+        size_t pos = temp_custom_control_script_filename.find_last_of('/');
+        if (pos != std::string::npos)
+            temp_custom_control_script_filename.insert(pos + 1, "temp_");
+        write_control_script(temp_custom_control_script_filename, control_script);
+    }
+
+    if (temp_custom_control_script_filename != "" && extension_loaders.size() > 0)
+    {
+        RCLCPP_INFO(node->get_logger(), "External URCap required, install in on the teach pendant and manually start it!");
+        rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency, ur_rtde::RTDEControlInterface::FLAG_USE_EXT_UR_CAP, 50002, RT_PRIORITY_UNDEFINED, temp_custom_control_script_filename);
+    }
+    else
+        rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency);
+
+    /* activate commands */
+    if (command_loaders.size() > 0)
+        std::cout << "\nur_ros_rtde_commands activated:" << std::endl;
+    for (auto &c : command_loaders)
+    {
+        for (auto dc : c->getDeclaredClasses())
+        {
+            std::cout << "\t" << c->getClassType(dc) << ": " << c->getClassDescription(dc) << std::endl;
+            auto shared_instance = c->createSharedInstance(dc);
+            shared_instance->start_action_server(node, rtde_control, rtde_io, rtde_receive, dashboard_client);
+            commands.push_back(shared_instance);
         }
     }
 

@@ -24,16 +24,20 @@ using MarkerMsg = visualization_msgs::msg::Marker;
 
 // SERVICE
 #include <std_srvs/srv/set_bool.hpp>
+#include <std_srvs/srv/trigger.hpp>
 #include <ur_ros_rtde_msgs/srv/get_internal_state.hpp>
 #include <ur_ros_rtde_msgs/srv/get_tcp_pose.hpp>
 #include <ur_ros_rtde_msgs/srv/get_wrench.hpp>
 #include <ur_ros_rtde_msgs/srv/get_robot_configuration.hpp>
+#include <ur_ros_rtde_msgs/srv/start_data_recording.hpp>
 
 using SwitchServiceType = std_srvs::srv::SetBool;
 using InternalStateServiceType = ur_ros_rtde_msgs::srv::GetInternalState;
 using TcpPoseServiceType = ur_ros_rtde_msgs::srv::GetTcpPose;
 using WrenchServiceType = ur_ros_rtde_msgs::srv::GetWrench;
 using RobotConfigurationServiceType = ur_ros_rtde_msgs::srv::GetRobotConfiguration;
+using StartDataRecordingServiceType = ur_ros_rtde_msgs::srv::StartDataRecording;
+using StopDataRecordingServiceType = std_srvs::srv::Trigger;
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -45,6 +49,16 @@ typedef struct{
     double speed_slider_value;
     double payload_value;
 } internal_state;
+
+typedef struct{
+    bool digital_pins_state;
+    bool payload_value;
+    bool joint_velocities;
+    bool joint_positions;
+    bool speed_slider_value;
+    bool tcp_pose;
+    bool wrench;
+} data_to_record;
 
 class robot_state_receiver
 {
@@ -74,6 +88,8 @@ private:
     rclcpp::Service<TcpPoseServiceType>::SharedPtr get_tcp_pose_service_;
     rclcpp::Service<WrenchServiceType>::SharedPtr get_wrench_service_;
     rclcpp::Service<RobotConfigurationServiceType>::SharedPtr get_robot_configuration_service_;
+    rclcpp::Service<StartDataRecordingServiceType>::SharedPtr start_data_recording_service_;
+    rclcpp::Service<StopDataRecordingServiceType>::SharedPtr stop_data_recording_service_;
     JointStateMsg last_fake_joint_state_msg_;
 
     // receiver configuration
@@ -89,10 +105,17 @@ private:
     geometry_msgs::msg::TransformStamped calibrated_camera_tf_;
 
     // exchanged data
-    internal_state* robot_internal_state_ = nullptr;
-    PoseMsg* tcp_pose_ = nullptr;
-    JointStateMsg* robot_configuration_ = nullptr;
-    WrenchMsg *wrench_ = nullptr;
+    std::shared_ptr<internal_state> robot_internal_state_;
+    std::shared_ptr<PoseMsg> tcp_pose_;
+    std::shared_ptr<JointStateMsg> robot_configuration_;
+    std::shared_ptr<WrenchMsg> wrench_;
+
+    // general variables
+    int timer_iterations_ = 0;
+    std::ofstream data_record_file_;
+    std::string data_filename_ = "";
+    bool record_data_ = false;
+    data_to_record data_to_rec_;
     
     void timer_callback();
     void switch_joint_state_type_cb(const std::shared_ptr<SwitchServiceType::Request> request, std::shared_ptr<SwitchServiceType::Response> response);
@@ -100,6 +123,8 @@ private:
     void get_tcp_pose_cb(const std::shared_ptr<TcpPoseServiceType::Request> request, std::shared_ptr<TcpPoseServiceType::Response> response);
     void get_wrench_cb(const std::shared_ptr<WrenchServiceType::Request> request, std::shared_ptr<WrenchServiceType::Response> response);
     void get_robot_configuration_cb(const std::shared_ptr<RobotConfigurationServiceType::Request> request, std::shared_ptr<RobotConfigurationServiceType::Response> response);
+    void start_data_recording_cb(const std::shared_ptr<StartDataRecordingServiceType::Request> request, std::shared_ptr<StartDataRecordingServiceType::Response> response);
+    void stop_data_recording_cb(const std::shared_ptr<StopDataRecordingServiceType::Request> request, std::shared_ptr<StopDataRecordingServiceType::Response> response);
     void subscriber_callback(const JointStateMsg::SharedPtr msg);
     void publish_wrench_markers(const WrenchMsg &wrench);
 };

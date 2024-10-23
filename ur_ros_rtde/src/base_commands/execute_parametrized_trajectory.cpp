@@ -1,12 +1,12 @@
 #include <ur_ros_rtde/command_base_class.hpp>
-#include <ur_ros_rtde_msgs/action/execute_trajectory.hpp>
+#include <ur_ros_rtde_msgs/action/execute_parametrized_trajectory.hpp>
 #include <pluginlib/class_list_macros.hpp>
 #include "trajectory_time_planning.h"
 
 // ---------- PLUGIN INFO ------------------
-#define PLUGIN_NAME "execute_trajectory_command"
-#define PLUGIN_CLASS_NAME ExecuteTrajectory
-using action_type = ur_ros_rtde_msgs::action::ExecuteTrajectory;
+#define PLUGIN_NAME "execute_parametrized_trajectory_command"
+#define PLUGIN_CLASS_NAME ExecuteParametrizedTrajectory
+using action_type = ur_ros_rtde_msgs::action::ExecuteParametrizedTrajectory;
 // -----------------------------------------
 
 using namespace std::chrono_literals;
@@ -47,7 +47,6 @@ void execute_function_impl(
 
   auto log_filepath = node->get_parameter(PLUGIN_NAME ".log_filepath").as_string();
   auto servo_j_lookahead_time = node->get_parameter(PLUGIN_NAME ".servo_j.lookahead_time").as_double();
-  auto servo_j_timestep = node->get_parameter(PLUGIN_NAME ".servo_j.timestep").as_double();
   auto servo_j_gain = node->get_parameter(PLUGIN_NAME ".servo_j.gain").as_int();
   auto max_allowed_deviation = node->get_parameter(PLUGIN_NAME ".max_allowed_deviation").as_double();
   const double STOP_THRESHOLD = node->get_parameter(PLUGIN_NAME ".stop_threshold").as_double();
@@ -58,33 +57,60 @@ void execute_function_impl(
   check_control_interface_connection(rtde_control, node);
   check_receive_interface_connection(rtde_receive, node);
 
-  /* check trajectory size */
+  /* check trajectory data */
   const auto goal = goal_handle->get_goal();
   auto result = std::make_shared<action_type::Result>();
-  if (goal->trajectory.size() <= 1)
+  if (goal->joint_positions.size() <= 1)
   {
-    RCLCPP_INFO(node->get_logger(), "Terminating execution, the passed trajectory has only %ld waypoints", goal->trajectory.size());
+    RCLCPP_ERROR(node->get_logger(), "Terminating execution, the passed trajectory has only %ld waypoints", goal->joint_positions.size());
+    result->result = false;
+    goal_handle->abort(result);
+    return;
+  }
+  if (goal->joint_positions.size() != goal->joint_velocities.size() || goal->joint_positions.size() != goal->times.size())
+  {
+    RCLCPP_ERROR(node->get_logger(), "Terminating execution, inconsistent size of joint positions (%d), velocities (%d) and times (%d)", (int) goal->joint_positions.size(), (int) goal->joint_velocities.size(), (int) goal->times.size());
     result->result = false;
     goal_handle->abort(result);
     return;
   }
 
-  /* get joint speed limits */
-  Array6d joint_speed_limits;
-  std::copy(goal->joint_speed_limits.begin(), goal->joint_speed_limits.end(), joint_speed_limits.begin());
+  /* check time parametrization and servo_j_timestep*/
+  double servo_j_timestep = goal->times[1] - goal->times[0];
+  auto t_start_temp = rtde_control->initPeriod();
+  rtde_control->waitPeriod(t_start_temp);
+  auto t_end_temp = std::chrono::steady_clock::now();
+  const double rtde_frequency = std::chrono::duration_cast<std::chrono::milliseconds>(t_end_temp - t_start_temp).count() / 1000.0;
+  if (rtde_frequency > servo_j_timestep)
+  {
+    RCLCPP_ERROR(node->get_logger(), "Requested loop cycle time (%f s) is lower than RTDE frequency (%f s), aborting trajectory execution", servo_j_timestep, rtde_frequency);
+    result->result = false;
+    goal_handle->abort(result);
+    return;
+  }
+  for (size_t p_idx = 1; p_idx < goal->times.size()-1; p_idx++)
+  {
+    auto temp_servo_j_timestep = goal->times[p_idx] - goal->times[p_idx - 1];
+    if (abs(temp_servo_j_timestep - servo_j_timestep) > 1.0e-3)
+    {
+      std::cout << goal->times[p_idx] << " ~ " << goal->times[p_idx - 1] << std::endl;
+      RCLCPP_ERROR(node->get_logger(), "Inconsistent timestep (%f s) between sample %ld and %ld (expected %f s)", temp_servo_j_timestep, p_idx - 1, p_idx, servo_j_timestep);
+      result->result = false;
+      goal_handle->abort(result);
+      return;
+    }
+  }
 
-  /* parametrize trajectory */
-  std::vector<double, std::allocator<double>> times;
-  std::vector<Array6d> velocities;
-  uint64_t iterations;
+  /* fill parametrized trajectory */
   std::vector<TrajectorySample> samples;
-  bool parametrization_success = trajectory_time_planning(msg_to_Array6dVector(goal->trajectory), goal->acceleration, goal->speed, goal->speed_percentage, joint_speed_limits, servo_j_timestep, times, velocities, iterations, samples);
-  if (!parametrization_success)
+  for (size_t p_idx = 0; p_idx < goal->joint_positions.size(); p_idx++)
   {
-    result->result = false;
-    goal_handle->abort(result);
-    return;
+    TrajectorySample sample;
+    std::copy(goal->joint_positions[p_idx].vector.begin(), goal->joint_positions[p_idx].vector.end(), sample.p.begin());
+    std::copy(goal->joint_velocities[p_idx].vector.begin(), goal->joint_velocities[p_idx].vector.end(), sample.v.begin());
+    samples.push_back(sample);
   }
+
   const int num_trajectory_samples = samples.size();
   const int last_sample_idx = num_trajectory_samples - 1;
 
@@ -107,7 +133,9 @@ void execute_function_impl(
     goal_handle->abort(result);
     return;
   }
-  
+
+  RCLCPP_INFO(node->get_logger(), "Starting execution, %ld waypoints with a timestep of %f s", goal->joint_positions.size(), servo_j_timestep);
+
   auto start_time = node->now();
 
   /* move robot at the start of the trajectory */
@@ -116,7 +144,6 @@ void execute_function_impl(
   rtde_control->stopJ();
 
   goal_handle->publish_feedback(create_feedback(0));
-  uint64_t feedback_prev_waypoint_id = 1;
 
   /* init logging variables */
   std::ofstream file;
@@ -171,19 +198,6 @@ void execute_function_impl(
   int control_loop_repetitions = 0;
   int control_loop_iterations = 0;
 
-  /* check if RTDE frequency is appropirate for the requested cycle time */
-  t_start = rtde_control->initPeriod();
-  rtde_control->waitPeriod(t_start);
-  t_end = std::chrono::steady_clock::now();
-  const double rtde_frequency = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count() / 1000.0;
-  if (rtde_frequency > servo_j_timestep)
-  {
-    RCLCPP_INFO(node->get_logger(), "Requested loop cycle time (%f s) is lower than RTDE frequency (%f s), aborting trajectory execution", servo_j_timestep, rtde_frequency);
-    result->result = false;
-    goal_handle->abort(result);
-    return;
-  }
-
   while (true)
   {
     control_loop_iterations++;
@@ -191,9 +205,8 @@ void execute_function_impl(
 
     /* step to the next sample */
     sample_idx = std::min(sample_idx + 1, num_trajectory_samples - 1);
-    delayed_waypoint_idx = sample_idx == num_trajectory_samples - 1 ? std::min(delayed_waypoint_idx + 1, sample_idx) :
-                           COMPUTE_WAYPOINT_TO_CHECK(sample_idx);
-    //const double lookahead_time = (sample_idx - delayed_waypoint_idx - 1) * servo_j_timestep;       // what is this?
+    delayed_waypoint_idx = sample_idx == num_trajectory_samples - 1 ? std::min(delayed_waypoint_idx + 1, sample_idx) : COMPUTE_WAYPOINT_TO_CHECK(sample_idx);
+    // const double lookahead_time = (sample_idx - delayed_waypoint_idx - 1) * servo_j_timestep;       // what is this?
     const double lookahead_time = servo_j_lookahead_time;
 
     const TrajectorySample p = samples[sample_idx];
@@ -202,8 +215,7 @@ void execute_function_impl(
     {
       t_start = rtde_control->initPeriod();
 
-      result->result = rtde_control->servoJ(Array6dToVector(p.p), goal->speed, goal->acceleration,
-                                            servo_j_timestep, std::max(0.03, lookahead_time), servo_j_gain);
+      result->result = rtde_control->servoJ(Array6dToVector(p.p), 0.0, 0.0, servo_j_timestep, std::max(0.03, lookahead_time), servo_j_gain);
 
       if (!result->result)
       {
@@ -261,16 +273,11 @@ void execute_function_impl(
         file << v_desired_j << ",";
       for (auto v_j : v)
         file << v_j << ",";
-      file << p.comments[0]->waypoint << "\n";
+      file << sample_idx << "\n";
     }
 
     /* publish feedback */
-    const uint64_t feedback_waypoint_id = prev_p.comments[0]->waypoint;
-    while (feedback_prev_waypoint_id < feedback_waypoint_id)
-    {
-      goal_handle->publish_feedback(create_feedback(feedback_prev_waypoint_id));
-      feedback_prev_waypoint_id++;
-    }
+    goal_handle->publish_feedback(create_feedback(sample_idx));
 
     /* check if robot is deviating too much from trajectory (distance between actual robot state and where it should be)*/
     Eigen::VectorXd desired_conf = Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(prev_p.p.data(), prev_p.p.size());
@@ -278,7 +285,7 @@ void execute_function_impl(
     Eigen::VectorXd actual_v = Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(v.data(), v.size());
     Eigen::VectorXd expected_v = Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(prev_p.v.data(), prev_p.v.size());
     auto deviation_old_waypoint = (actual_conf - desired_conf).norm();
-    
+
     if (deviation_old_waypoint > max_allowed_deviation)
     {
       result->result = false;
@@ -293,7 +300,7 @@ void execute_function_impl(
     double distance_to_goal = (actual_conf - end_conf).norm();
     const double actual_speed = actual_v.norm();
     const double expected_speed = expected_v.norm();
-    
+
     if (sample_idx == last_sample_idx && delayed_waypoint_idx == last_sample_idx && distance_to_goal < STOP_THRESHOLD)
     {
       RCLCPP_INFO(node->get_logger(), "Reached a distance of %f rad from goal, stopping robot.", float(distance_to_goal));
@@ -306,7 +313,7 @@ void execute_function_impl(
       if (last_distance_to_goal > STOP_THRESHOLD)
       {
         RCLCPP_WARN(node->get_logger(), "Robot stopped too far from goal, moving to goal.");
-        rtde_control->moveJ(Array6dToVector(end_sample.p), 0.2,0.2);
+        rtde_control->moveJ(Array6dToVector(end_sample.p), 0.2, 0.2);
         rtde_control->stopJ();
       }
       result->result = true;
@@ -331,8 +338,9 @@ void execute_function_impl(
       delayed_waypoint_idx--;
       control_loop_repetitions++;
     }
-    else{
-      //if(sample_idx == num_trajectory_samples - 2) std::cout << deviation_old_waypoint << std::endl;
+    else
+    {
+      // if(sample_idx == num_trajectory_samples - 2) std::cout << deviation_old_waypoint << std::endl;
     }
 
     auto cycle_time = (node->now() - start_cycle_time).seconds();
@@ -365,7 +373,6 @@ public:
 
     node->declare_parameter<std::string>(PLUGIN_NAME ".log_filepath", "");
     node->declare_parameter<double>(PLUGIN_NAME ".servo_j.lookahead_time", 0.03);
-    node->declare_parameter<double>(PLUGIN_NAME ".servo_j.timestep", 0.002);
     node->declare_parameter<int>(PLUGIN_NAME ".servo_j.gain", 2000);
     node->declare_parameter<double>(PLUGIN_NAME ".max_allowed_deviation", 0.7);
     node->declare_parameter<double>(PLUGIN_NAME ".stop_threshold", 5.0E-3);

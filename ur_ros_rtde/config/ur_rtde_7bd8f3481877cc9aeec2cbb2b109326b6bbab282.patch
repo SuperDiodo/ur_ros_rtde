@@ -1,0 +1,34 @@
+diff --git a/include/ur_rtde/rtde_control_interface.h b/include/ur_rtde/rtde_control_interface.h
+index d018e01..f6a4f74 100644
+--- a/include/ur_rtde/rtde_control_interface.h
++++ b/include/ur_rtde/rtde_control_interface.h
+@@ -198,7 +198,7 @@ class RTDEControlInterface
+ 
+   RTDE_EXPORT explicit RTDEControlInterface(std::string hostname, double frequency = -1.0,
+                                             uint16_t flags = FLAGS_DEFAULT, int ur_cap_port = 50002,
+-                                            int rt_priority = RT_PRIORITY_UNDEFINED);
++                                            int rt_priority = RT_PRIORITY_UNDEFINED, const std::string &custom_script_str = "");
+ 
+   RTDE_EXPORT virtual ~RTDEControlInterface();
+ 
+diff --git a/src/rtde_control_interface.cpp b/src/rtde_control_interface.cpp
+index 6c45466..d53dc4e 100644
+--- a/src/rtde_control_interface.cpp
++++ b/src/rtde_control_interface.cpp
+@@ -36,7 +36,7 @@ static void verifyValueIsWithin(const double &value, const double &min, const do
+ }
+ 
+ RTDEControlInterface::RTDEControlInterface(std::string hostname, double frequency, uint16_t flags, int ur_cap_port,
+-                                           int rt_priority)
++                                           int rt_priority, const std::string &custom_script_str)
+     : hostname_(std::move(hostname)),
+       frequency_(frequency),
+       upload_script_(flags & FLAG_UPLOAD_SCRIPT),
+@@ -122,6 +122,7 @@ RTDEControlInterface::RTDEControlInterface(std::string hostname, double frequenc
+ 
+   // Create a connection to the script server
+   script_client_ = std::make_shared<ScriptClient>(hostname_, versions_.major, versions_.minor);
++  script_client_->setScriptFile(custom_script_str);
+   script_client_->connect();
+ 
+   // If user want to use upper range of RTDE registers, add the register offset in control script

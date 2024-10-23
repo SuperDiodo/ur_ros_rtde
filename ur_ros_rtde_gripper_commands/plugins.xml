@@ -9,3 +9,15 @@
     <description>SoftGripperControl command.</description>
   </class>
 </library>
+
+<library path="gripper_control_script_extension_lib">
+  <class type="SgGrip" base_class_type="ur_ros_rtde_extension">
+    <description>SgGrip extension.</description>
+  </class>
+  <class type="SgRelease" base_class_type="ur_ros_rtde_extension">
+    <description>SgRelease extension.</description>
+  </class>
+  <class type="SgGetWidth" base_class_type="ur_ros_rtde_extension">
+    <description>SgGetWidth extension.</description>
+  </class>
+</library>
