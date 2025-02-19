@@ -19,21 +19,28 @@ void execute_function_impl(
   check_receive_interface_connection(rtde_receive, node);
   const auto goal = goal_handle->get_goal();
 
+  // busy wait for termination of other commands
+  // busy wait for termination of this command
+  while (rtde_receive->getOutputDoubleRegister(COMMAND_STATUS_REGISTER) != EXT_CMD_IDLE) rclcpp::sleep_for(std::chrono::milliseconds(100));
+
   // set registers for request
-  rtde_io->setInputDoubleRegister(INPUT_DOUBLE_REG_1, goal->target_width);
-  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_1, goal->gentle_grip);
-  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_2, goal->tool_index);
-  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_3, goal->blocking);
-  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_4, goal->depth_compensation);
+  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_1, goal->target_width);
+  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_2, goal->gentle_grip);
+  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_3, goal->tool_index);
+  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_4, goal->blocking);
+  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_5, goal->depth_compensation);
 
   // lock command
-  rtde_io->setInputIntRegister(COMMAND_ID_INTEGER_INPUT_REG, extension_id); // activate command with the corresponding ID
+  rtde_io->setInputDoubleRegister(COMMAND_REQUEST_REGISTER, extension_id); // activate command with the corresponding ID
 
-  // busy wait for termination
-  while (rtde_receive->getOutputIntRegister(COMMAND_ID_INTEGER_OUTPUT_REG) != 2) rclcpp::sleep_for(std::chrono::milliseconds(10));
+  // busy wait for termination of this command
+  while (rtde_receive->getOutputDoubleRegister(COMMAND_STATUS_REGISTER) != EXT_CMD_DONE) rclcpp::sleep_for(std::chrono::milliseconds(100));
 
   // unlock command
-  rtde_io->setInputIntRegister(COMMAND_ID_INTEGER_INPUT_REG, 0);
+  rtde_io->setInputDoubleRegister(COMMAND_REQUEST_REGISTER, EXT_CMD_IDLE); // activate command with the corresponding ID
+
+  // busy wait for command clearing
+  while (rtde_receive->getOutputDoubleRegister(COMMAND_STATUS_REGISTER) != EXT_CMD_IDLE) rclcpp::sleep_for(std::chrono::milliseconds(100));
 
   // send result
   auto result = std::make_shared<action_type::Result>();
@@ -48,7 +55,7 @@ static control_script_extension generate_modifications(const int &id)
 
   /*
     [Action request <-> register mapping]
-    float64 target_width -> INPUT_DOUBLE_REG_1
+    float64 target_width -> INPUT_DOUBLE_REG_1 (floored)
     bool gentle_grip -> INPUT_INTEGER_REG_1
     int32 tool_index -> INPUT_INTEGER_REG_2
     bool blocking -> INPUT_INTEGER_REG_3
@@ -59,7 +66,13 @@ static control_script_extension generate_modifications(const int &id)
 
   control_script_extension ext(PLUGIN_NAME, id);
   ext.add_method("textmsg", "\"sg_grip\"");
-  //ext.add_method("sg_grip", register_arg(INPUT_DOUBLE_REG_1, false), register_arg(INPUT_INTEGER_REG_1, true), register_arg(INPUT_INTEGER_REG_2, true), register_arg(INPUT_INTEGER_REG_3, true), register_arg(INPUT_INTEGER_REG_4, true));
+  ext.add_method("sg_grip", register_arg(INPUT_INTEGER_REG_1, REGISTER_TYPE_INT), 
+                            register_arg(INPUT_INTEGER_REG_2, REGISTER_TYPE_BOOL), 
+                            register_arg(INPUT_INTEGER_REG_3, REGISTER_TYPE_INT), 
+                            register_arg(INPUT_INTEGER_REG_4, REGISTER_TYPE_BOOL), 
+                            register_arg(INPUT_INTEGER_REG_5, REGISTER_TYPE_BOOL));
+  
+                            
   return ext;
 }
 

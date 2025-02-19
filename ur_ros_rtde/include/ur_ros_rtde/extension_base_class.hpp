@@ -17,7 +17,8 @@ public:
 
     virtual ~ur_ros_rtde_extension() {}
 
-    int extension_id = 0;
+    int extension_id = COMMAND_ID_OFFSET;
+    bool requires_external_urcap = false;
 };
 
 #endif

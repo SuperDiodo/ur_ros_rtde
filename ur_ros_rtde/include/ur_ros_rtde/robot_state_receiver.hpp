@@ -22,20 +22,20 @@ using JointStateMsg = sensor_msgs::msg::JointState;
 using TfMsg = tf2_msgs::msg::TFMessage;
 using MarkerMsg = visualization_msgs::msg::Marker;
 
-// SERVICE
+// SERVICES
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
 #include <ur_ros_rtde_msgs/srv/get_internal_state.hpp>
 #include <ur_ros_rtde_msgs/srv/get_tcp_pose.hpp>
 #include <ur_ros_rtde_msgs/srv/get_wrench.hpp>
-#include <ur_ros_rtde_msgs/srv/get_robot_configuration.hpp>
+#include <ur_ros_rtde_msgs/srv/get_joint_state.hpp>
 #include <ur_ros_rtde_msgs/srv/start_data_recording.hpp>
 
 using SwitchServiceType = std_srvs::srv::SetBool;
 using InternalStateServiceType = ur_ros_rtde_msgs::srv::GetInternalState;
 using TcpPoseServiceType = ur_ros_rtde_msgs::srv::GetTcpPose;
 using WrenchServiceType = ur_ros_rtde_msgs::srv::GetWrench;
-using RobotConfigurationServiceType = ur_ros_rtde_msgs::srv::GetRobotConfiguration;
+using JointStateServiceType = ur_ros_rtde_msgs::srv::GetJointState;
 using StartDataRecordingServiceType = ur_ros_rtde_msgs::srv::StartDataRecording;
 using StopDataRecordingServiceType = std_srvs::srv::Trigger;
 
@@ -69,7 +69,7 @@ public:
 private:
 
     // ur_rtde stuff
-    ur_rtde::RTDEReceiveInterface *receiver_interface_;
+    std::shared_ptr<ur_rtde::RTDEReceiveInterface> receiver_interface_;
     
     // ros2 stuff
     rclcpp::Node::SharedPtr node_;
@@ -82,12 +82,14 @@ private:
     rclcpp::Publisher<JointStateMsg>::SharedPtr fake_joint_state_pub_;
     rclcpp::Publisher<JointStateMsg>::SharedPtr real_joint_state_pub_;
     rclcpp::Publisher<TfMsg>::SharedPtr calibrated_camera_tf_pub_;
+    rclcpp::Publisher<InternalStateServiceType::Response>::SharedPtr internal_state_pub_;
+    rclcpp::Publisher<PoseMsg>::SharedPtr tcp_pose_pub_;
     rclcpp::Subscription<JointStateMsg>::SharedPtr fake_joint_state_sub_;
     rclcpp::Service<SwitchServiceType>::SharedPtr switch_joint_state_type_service_;
     rclcpp::Service<InternalStateServiceType>::SharedPtr get_internal_state_service_;
     rclcpp::Service<TcpPoseServiceType>::SharedPtr get_tcp_pose_service_;
     rclcpp::Service<WrenchServiceType>::SharedPtr get_wrench_service_;
-    rclcpp::Service<RobotConfigurationServiceType>::SharedPtr get_robot_configuration_service_;
+    rclcpp::Service<JointStateServiceType>::SharedPtr get_joint_state_service_;
     rclcpp::Service<StartDataRecordingServiceType>::SharedPtr start_data_recording_service_;
     rclcpp::Service<StopDataRecordingServiceType>::SharedPtr stop_data_recording_service_;
     JointStateMsg last_fake_joint_state_msg_;
@@ -107,7 +109,7 @@ private:
     // exchanged data
     std::shared_ptr<internal_state> robot_internal_state_;
     std::shared_ptr<PoseMsg> tcp_pose_;
-    std::shared_ptr<JointStateMsg> robot_configuration_;
+    std::shared_ptr<JointStateMsg> joint_state_;
     std::shared_ptr<WrenchMsg> wrench_;
 
     // general variables
@@ -122,7 +124,7 @@ private:
     void get_internal_state_cb(const std::shared_ptr<InternalStateServiceType::Request> request, std::shared_ptr<InternalStateServiceType::Response> response);
     void get_tcp_pose_cb(const std::shared_ptr<TcpPoseServiceType::Request> request, std::shared_ptr<TcpPoseServiceType::Response> response);
     void get_wrench_cb(const std::shared_ptr<WrenchServiceType::Request> request, std::shared_ptr<WrenchServiceType::Response> response);
-    void get_robot_configuration_cb(const std::shared_ptr<RobotConfigurationServiceType::Request> request, std::shared_ptr<RobotConfigurationServiceType::Response> response);
+    void get_joint_state_cb(const std::shared_ptr<JointStateServiceType::Request> request, std::shared_ptr<JointStateServiceType::Response> response);
     void start_data_recording_cb(const std::shared_ptr<StartDataRecordingServiceType::Request> request, std::shared_ptr<StartDataRecordingServiceType::Response> response);
     void stop_data_recording_cb(const std::shared_ptr<StopDataRecordingServiceType::Request> request, std::shared_ptr<StopDataRecordingServiceType::Response> response);
     void subscriber_callback(const JointStateMsg::SharedPtr msg);

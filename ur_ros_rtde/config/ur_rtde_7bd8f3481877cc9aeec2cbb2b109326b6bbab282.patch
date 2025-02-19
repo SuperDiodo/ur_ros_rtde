@@ -12,10 +12,19 @@ index d018e01..f6a4f74 100644
    RTDE_EXPORT virtual ~RTDEControlInterface();
  
 diff --git a/src/rtde_control_interface.cpp b/src/rtde_control_interface.cpp
-index 6c45466..d53dc4e 100644
+index 6c45466..5a62168 100644
 --- a/src/rtde_control_interface.cpp
 +++ b/src/rtde_control_interface.cpp
-@@ -36,7 +36,7 @@ static void verifyValueIsWithin(const double &value, const double &min, const do
+@@ -13,6 +13,8 @@
+ #include <iostream>
+ #include <thread>
+ 
++#define UR_RTDE_LOAD_CUSTOM_CONTROL_SCRIPT_PATCH 
++
+ namespace ur_rtde
+ {
+ static const std::string move_path_inject_id = "# inject move path\n";
+@@ -36,7 +38,7 @@ static void verifyValueIsWithin(const double &value, const double &min, const do
  }
  
  RTDEControlInterface::RTDEControlInterface(std::string hostname, double frequency, uint16_t flags, int ur_cap_port,
@@ -24,7 +33,7 @@ index 6c45466..d53dc4e 100644
      : hostname_(std::move(hostname)),
        frequency_(frequency),
        upload_script_(flags & FLAG_UPLOAD_SCRIPT),
-@@ -122,6 +122,7 @@ RTDEControlInterface::RTDEControlInterface(std::string hostname, double frequenc
+@@ -122,6 +124,7 @@ RTDEControlInterface::RTDEControlInterface(std::string hostname, double frequenc
  
    // Create a connection to the script server
    script_client_ = std::make_shared<ScriptClient>(hostname_, versions_.major, versions_.minor);

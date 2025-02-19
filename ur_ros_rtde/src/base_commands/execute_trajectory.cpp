@@ -362,11 +362,10 @@ public:
       std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive,
       std::shared_ptr<ur_rtde::DashboardClient> dashboard_client) override
   {
-
     node->declare_parameter<std::string>(PLUGIN_NAME ".log_filepath", "");
     node->declare_parameter<double>(PLUGIN_NAME ".servo_j.lookahead_time", 0.03);
     node->declare_parameter<double>(PLUGIN_NAME ".servo_j.timestep", 0.002);
-    node->declare_parameter<int>(PLUGIN_NAME ".servo_j.gain", 2000);
+    node->declare_parameter<int>(PLUGIN_NAME ".servo_j.gain", 500);
     node->declare_parameter<double>(PLUGIN_NAME ".max_allowed_deviation", 0.7);
     node->declare_parameter<double>(PLUGIN_NAME ".stop_threshold", 5.0E-3);
 

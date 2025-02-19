@@ -30,21 +30,24 @@ void execute_function_impl(
   check_receive_interface_connection(rtde_receive, node);
   const auto goal = goal_handle->get_goal();
 
-  // set registers for request
-  rtde_io->setInputIntRegister(INPUT_INTEGER_REG_1, goal->tool_index);
+  // busy wait for termination of other commands
+  while (rtde_receive->getOutputDoubleRegister(COMMAND_STATUS_REGISTER) != EXT_CMD_IDLE) rclcpp::sleep_for(std::chrono::milliseconds(100));
 
   // lock command
-  rtde_io->setInputIntRegister(COMMAND_ID_INTEGER_INPUT_REG, extension_id); // activate command with the corresponding ID
+  rtde_io->setInputDoubleRegister(COMMAND_REQUEST_REGISTER, extension_id); // activate command with the corresponding ID
 
-  // busy wait for termination
-  while (rtde_receive->getOutputIntRegister(COMMAND_ID_INTEGER_OUTPUT_REG) != 2) rclcpp::sleep_for(std::chrono::milliseconds(10));
-  
-  // retieve result
+  // busy wait for termination of this command
+  while (rtde_receive->getOutputDoubleRegister(COMMAND_STATUS_REGISTER) != EXT_CMD_DONE) rclcpp::sleep_for(std::chrono::milliseconds(100));
+
+  // retrieve result
   auto result = std::make_shared<action_type::Result>();
   result->width = rtde_receive->getOutputDoubleRegister(OUTPUT_DOUBLE_REG_1);
 
   // unlock command
-  rtde_io->setInputIntRegister(COMMAND_ID_INTEGER_INPUT_REG, 0);
+  rtde_io->setInputDoubleRegister(COMMAND_REQUEST_REGISTER, EXT_CMD_IDLE); // activate command with the corresponding ID
+
+  // busy wait for command clearing
+  while (rtde_receive->getOutputDoubleRegister(COMMAND_STATUS_REGISTER) != EXT_CMD_IDLE) rclcpp::sleep_for(std::chrono::milliseconds(100));
 
   // send result
   result->result = true;
@@ -59,14 +62,14 @@ static control_script_extension generate_modifications(const int &id)
   /*
     [Action request <-> register mapping]
     int32 tool_index -> INPUT_INTEGER_REG_1
-    bool width -> OUTPUT_DOUBLE_REG_1
+    double width -> OUTPUT_DOUBLE_REG_1
 
     URCap method: get_sg_Width(tool_index)
   */
 
   control_script_extension ext(PLUGIN_NAME, id);
-  ext.add_method("textmsg", "\"sg_get_width\"");
-  //ext.add_method_with_result("sg_get_width", register_arg(OUTPUT_DOUBLE_REG_1, false), register_arg(INPUT_INTEGER_REG_1, true));
+  ext.add_method("textmsg", "\"get_sg_Width\"");
+  ext.add_method_with_result("get_sg_Width", register_arg(OUTPUT_DOUBLE_REG_1, REGISTER_TYPE_DOUBLE));
   return ext;
 }
 

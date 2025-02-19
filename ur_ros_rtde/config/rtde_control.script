@@ -1108,9 +1108,8 @@ def rtde_control():
 
         while keep_running:
 
-            write_output_integer_reg(18, 0)
-
             cmd = rtde_cmd()
+            
             if cmd == 24 or cmd == 11 or cmd == 9 or cmd == 10 or cmd == 6 or cmd == 25 or cmd == 26 or cmd == 27 or cmd == 38 or cmd == 58:
                 # for realtime commands simply process and signal ready.
                 keep_running = process_cmd(cmd)

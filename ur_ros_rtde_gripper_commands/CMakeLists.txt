@@ -5,24 +5,28 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+# Find dependencies
 find_package(rclcpp_action REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(pluginlib REQUIRED) 
-find_package(ur_ros_rtde REQUIRED) 
+find_package(pluginlib REQUIRED)
+find_package(ur_ros_rtde REQUIRED)
 find_package(ur_rtde REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(rosidl_default_runtime REQUIRED)
 
+# Include directories
 include_directories(
   include
-  ${ur_ros_rtde_INCLUDE_DIRS} # do not add ur_ros_rtde in ament_target_dependencies, this is fine
+  ${ur_ros_rtde_INCLUDE_DIRS} # Do not add ur_ros_rtde in ament_target_dependencies
 )
 
+# Dependencies for the generated interfaces
 set(dependencies
-  rclcpp_action
+  builtin_interfaces
   geometry_msgs
-  pluginlib
 )
 
+# Generate actions and messages
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/SetSuction.action"
   "action/SetDeposit.action"
@@ -30,20 +34,22 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/SgGrip.action"
   "action/SgRelease.action"
   "action/SgGetWidth.action"
-  DEPENDENCIES ${dependencies})
+  DEPENDENCIES ${dependencies}
+)
 
+# Export plugin description file
 pluginlib_export_plugin_description_file(ur_ros_rtde_gripper_commands plugins.xml)
 
+# Library: gripper_commands_lib
 file(GLOB COMMAND_SOURCES "src/commands/*.cpp")
-
 add_library(gripper_commands_lib SHARED ${COMMAND_SOURCES})
 target_compile_features(gripper_commands_lib PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(gripper_commands_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(gripper_commands_lib ${dependencies})
+ament_target_dependencies(gripper_commands_lib rclcpp_action pluginlib geometry_msgs)
 
-# Get the typesupport target and link it
+# Link typesupport to the library
 rosidl_get_typesupport_target(typesupport_target_cpp ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(gripper_commands_lib ${typesupport_target_cpp} ${Eigen3_LIBRARIES} ur_rtde::rtde)
 
@@ -55,17 +61,16 @@ install(
   RUNTIME DESTINATION bin
 )
 
+# Library: gripper_control_script_extension_lib
 file(GLOB EXTENSION_SOURCES "src/extensions/*.cpp")
-
 add_library(gripper_control_script_extension_lib SHARED ${EXTENSION_SOURCES})
 target_compile_features(gripper_control_script_extension_lib PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 target_include_directories(gripper_control_script_extension_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-ament_target_dependencies(gripper_control_script_extension_lib ${dependencies})
+ament_target_dependencies(gripper_control_script_extension_lib rclcpp_action pluginlib geometry_msgs)
 
-# Get the typesupport target and link it
-rosidl_get_typesupport_target(typesupport_target_cpp ${PROJECT_NAME} "rosidl_typesupport_cpp")
+# Link typesupport to the library
 target_link_libraries(gripper_control_script_extension_lib ${typesupport_target_cpp} ${Eigen3_LIBRARIES} ur_rtde::rtde)
 
 install(
@@ -76,32 +81,38 @@ install(
   RUNTIME DESTINATION bin
 )
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
-
+# Install configuration files
 install(DIRECTORY
   config
   DESTINATION share/${PROJECT_NAME}/
 )
 
+# Install action files
+install(
+  DIRECTORY action
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+# Export package information
 ament_export_include_directories(
   include
 )
 
 ament_export_libraries(
   gripper_commands_lib
+  gripper_control_script_extension_lib
 )
 ament_export_targets(
   export_${PROJECT_NAME}
 )
 
+# Testing (optional)
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  set(ament_cmake_copyright_FOUND TRUE) # Skip copyright checks
+  set(ament_cmake_cpplint_FOUND TRUE)   # Skip cpplint
+  ament_lint_auto_find_test_dependencies()
+endif()
+
 ament_package()
+

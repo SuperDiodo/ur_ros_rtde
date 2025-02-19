@@ -45,8 +45,21 @@ install(TARGETS
 robot_state_receiver
 DESTINATION lib/${PROJECT_NAME})
 
+# Generate custom control script file
+set(SOURCE_FILE "${CMAKE_CURRENT_LIST_DIR}/config/rtde_control.script")
+set(HEADER_FILE "${CMAKE_CURRENT_LIST_DIR}/src/control_script_str.h")
+
+add_custom_command(
+  OUTPUT "${HEADER_FILE}"
+  COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_LIST_DIR}/generate_control_script_str.cmake"
+  DEPENDS "${SOURCE_FILE}"
+  VERBATIM
+)
+
 # Install command_server
 add_executable(command_server src/command_server.cpp)
+add_custom_target(generate_control_script DEPENDS "${HEADER_FILE}")
+add_dependencies(command_server generate_control_script)
 ament_target_dependencies(command_server ${dependencies})
 target_link_libraries(command_server ${Eigen3_LIBRARIES} ur_rtde::rtde)
 
@@ -133,68 +146,27 @@ install(
 endif()
 
 # Tests
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_command_server.cpp")
-add_executable(test_command_server src/test/test_command_server.cpp)
-ament_target_dependencies(test_command_server ${dependencies})
-target_link_libraries(test_command_server ${Eigen3_LIBRARIES})
-install(TARGETS
-test_command_server
-DESTINATION lib/${PROJECT_NAME})
-endif()
+# Find all .cpp files in the test directory
+file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/test/*.cpp")
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_command_server.cpp")
-add_executable(test_pallettizzazione src/test/test_pallettizzazione.cpp)
-ament_target_dependencies(test_pallettizzazione ${dependencies})
-target_link_libraries(test_pallettizzazione ${Eigen3_LIBRARIES})
-install(TARGETS
-test_pallettizzazione
-DESTINATION lib/${PROJECT_NAME})
-endif()
+foreach(TEST_SOURCE ${TEST_SOURCES})
+    get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
+    add_executable(${TEST_NAME} ${TEST_SOURCE})
+    ament_target_dependencies(${TEST_NAME} ${dependencies})
+    target_link_libraries(${TEST_NAME} ${Eigen3_LIBRARIES})
+    if(TEST_NAME STREQUAL "test_upload_custom_script")
+        target_link_libraries(${TEST_NAME} ur_rtde::rtde)
+    endif()
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_upload_custom_script.cpp")
-add_executable(test_upload_custom_script src/test/test_upload_custom_script.cpp)
-ament_target_dependencies(test_upload_custom_script ${dependencies})
-target_link_libraries(test_upload_custom_script ${Eigen3_LIBRARIES} ur_rtde::rtde)
-install(TARGETS
-test_upload_custom_script
-DESTINATION lib/${PROJECT_NAME})
-endif()
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_trajectory_execution.cpp")
-add_executable(test_trajectory_execution src/test/test_trajectory_execution.cpp)
-ament_target_dependencies(test_trajectory_execution ${dependencies})
-target_link_libraries(test_trajectory_execution ${Eigen3_LIBRARIES})
-install(TARGETS
-test_trajectory_execution
-DESTINATION lib/${PROJECT_NAME})
-endif()
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_trajectory_2_execution.cpp")
-add_executable(test_trajectory_2_execution src/test/test_trajectory_2_execution.cpp)
-ament_target_dependencies(test_trajectory_2_execution ${dependencies})
-target_link_libraries(test_trajectory_2_execution ${Eigen3_LIBRARIES})
-install(TARGETS
-test_trajectory_2_execution
-DESTINATION lib/${PROJECT_NAME})
-endif()
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/test/test_trajectory_time_planning.cpp")
-add_executable(test_trajectory_time_planning src/test/test_trajectory_time_planning.cpp)
-ament_target_dependencies(test_trajectory_time_planning ${dependencies})
-target_link_libraries(test_trajectory_time_planning ${Eigen3_LIBRARIES})
-install(TARGETS
-test_trajectory_time_planning
-DESTINATION lib/${PROJECT_NAME})
-endif()
+    # Install the test executable
+    install(TARGETS
+        ${TEST_NAME}
+        DESTINATION lib/${PROJECT_NAME})
+endforeach()
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
   set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()

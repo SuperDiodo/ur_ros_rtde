@@ -46,17 +46,25 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
     {
         param_string = node_->declare_parameter<std::string>("robot_ip", "127.0.0.1");
         param_double = node_->declare_parameter<double>("rtde_frequency", 100.0);
-        receiver_interface_ = new ur_rtde::RTDEReceiveInterface(param_string, param_double);
+        receiver_interface_ = std::make_shared<ur_rtde::RTDEReceiveInterface>(param_string, param_double);
 
         param_string = node_->declare_parameter<std::string>("real_joint_states_topic", "/real_joint_states");
         real_joint_state_pub_ = node_->create_publisher<JointStateMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
         RCLCPP_INFO(node->get_logger(), "Created real joint state publisher..");
 
         get_internal_state_service_ = node->create_service<InternalStateServiceType>("get_internal_state", std::bind(&robot_state_receiver::get_internal_state_cb, this, _1, _2));
-        RCLCPP_INFO(node->get_logger(), "Created service for getting the internal robot state..");
+        RCLCPP_INFO(node->get_logger(), "Created service for getting the robot internal state..");
+
+        param_string = node_->declare_parameter<std::string>("internal_state_topic", "/internal_state");
+        internal_state_pub_ = node_->create_publisher<InternalStateServiceType::Response>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
+        RCLCPP_INFO(node->get_logger(), "Created robot internal state publisher..");
 
         get_tcp_pose_service_ = node->create_service<TcpPoseServiceType>("get_tcp_pose", std::bind(&robot_state_receiver::get_tcp_pose_cb, this, _1, _2));
-        RCLCPP_INFO(node->get_logger(), "Created service for getting the flange pose..");
+        RCLCPP_INFO(node->get_logger(), "Created service for getting the TCP pose..");
+
+        param_string = node_->declare_parameter<std::string>("tcp_pose_topic", "/tcp_pose");
+        tcp_pose_pub_ = node_->create_publisher<PoseMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
+        RCLCPP_INFO(node->get_logger(), "Created robot TCP pose publisher..");
 
         get_wrench_service_ = node->create_service<WrenchServiceType>("get_wrench", std::bind(&robot_state_receiver::get_wrench_cb, this, _1, _2));
         RCLCPP_INFO(node->get_logger(), "Created service for getting wrench..");
@@ -76,8 +84,8 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
         last_fake_joint_state_msg_.velocity = std::vector<double>(joint_names_.size(), 0);
     }
 
-    get_robot_configuration_service_ = node->create_service<RobotConfigurationServiceType>("get_robot_configuration", std::bind(&robot_state_receiver::get_robot_configuration_cb, this, _1, _2));
-    RCLCPP_INFO(node->get_logger(), "Created service for getting the robot configuration..");
+    get_joint_state_service_ = node->create_service<JointStateServiceType>("get_joint_state", std::bind(&robot_state_receiver::get_joint_state_cb, this, _1, _2));
+    RCLCPP_INFO(node->get_logger(), "Created service for getting the joint state..");
 
     param_string = node_->declare_parameter<std::string>("camera_calibration_file", "");
 
@@ -201,23 +209,24 @@ void robot_state_receiver::timer_callback()
         {
             std::vector<double> robot_configuration = receiver_interface_->getActualQ();
             std::vector<double> joint_velocities = receiver_interface_->getActualQd();
-            JointStateMsg robot_configuration_msg;
-            robot_configuration_msg.header.stamp = node_->now();
-            robot_configuration_msg.name = joint_names_;
-            robot_configuration_msg.header.frame_id = "world";
-            robot_configuration_msg.position = robot_configuration;
-            robot_configuration_msg.velocity = joint_velocities;
-            robot_configuration_msg.effort = std::vector<double>(joint_names_.size(), 0.0);
-            real_joint_state_pub_->publish(robot_configuration_msg);
+            JointStateMsg temp_joint_state;
+            temp_joint_state.header.stamp = node_->now();
+            temp_joint_state.name = joint_names_;
+            temp_joint_state.header.frame_id = "world";
+            temp_joint_state.position = robot_configuration;
+            temp_joint_state.velocity = joint_velocities;
+            temp_joint_state.effort = std::vector<double>(joint_names_.size(), 0.0);
+            real_joint_state_pub_->publish(temp_joint_state);
             if (!publish_fake_joint_states)
-                last_fake_joint_state_msg_ = robot_configuration_msg;
+                last_fake_joint_state_msg_ = temp_joint_state;
             last_fake_joint_state_msg_.header.stamp = node_->now();
-            joint_state_pub_->publish(publish_fake_joint_states ? last_fake_joint_state_msg_ : robot_configuration_msg);
-            if (!robot_configuration_)
-                robot_configuration_ = std::make_shared<JointStateMsg>();
-            robot_configuration_->name = joint_names_;
-            robot_configuration_->position = robot_configuration_msg.position;
-            robot_configuration_->velocity = robot_configuration_msg.velocity;
+            joint_state_pub_->publish(publish_fake_joint_states ? last_fake_joint_state_msg_ : temp_joint_state);
+            if (!joint_state_) joint_state_ = std::make_shared<JointStateMsg>();
+            joint_state_->header = temp_joint_state.header;
+            joint_state_->name = temp_joint_state.name;
+            joint_state_->position = temp_joint_state.position;
+            joint_state_->velocity = temp_joint_state.velocity;
+            joint_state_->effort = temp_joint_state.effort;
         }
     }
 
@@ -315,13 +324,13 @@ void robot_state_receiver::timer_callback()
 
         if (data_to_rec_.joint_positions)
         {
-            for (auto jp : robot_configuration_->position)
+            for (auto jp : joint_state_->position)
                 data_record_file_ << jp << ",";
         }
 
         if (data_to_rec_.joint_velocities)
         {
-            for (auto jv : robot_configuration_->velocity)
+            for (auto jv : joint_state_->velocity)
                 data_record_file_ << jv << ",";
         }
 
@@ -401,25 +410,17 @@ void robot_state_receiver::get_wrench_cb(const std::shared_ptr<WrenchServiceType
     response->success = true;
 }
 
-void robot_state_receiver::get_robot_configuration_cb(const std::shared_ptr<RobotConfigurationServiceType::Request> request, std::shared_ptr<RobotConfigurationServiceType::Response> response)
+void robot_state_receiver::get_joint_state_cb(const std::shared_ptr<JointStateServiceType::Request> request, std::shared_ptr<JointStateServiceType::Response> response)
 {
     (void)request;
 
-    if (simulation_only_)
-    {
-        response->names = last_fake_joint_state_msg_.name;
-        response->values = last_fake_joint_state_msg_.position;
-        response->success = true;
-    }
-
-    if (robot_configuration_ == nullptr)
+    if (joint_state_ == nullptr)
     {
         response->success = false;
         return;
     }
 
-    response->names = robot_configuration_->name;
-    response->values = robot_configuration_->position;
+    response->joint_state = simulation_only_ ? last_fake_joint_state_msg_ : *joint_state_;
     response->success = true;
 }
 

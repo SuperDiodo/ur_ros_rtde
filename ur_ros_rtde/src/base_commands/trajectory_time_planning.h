@@ -1010,7 +1010,8 @@ inline Array6size trajectory_create_cache()
 }
 
 inline
-bool trajectory_time_planning(const std::vector<Array6d> & trajectory, const double a_max, const double v_max, const double v_percentage, const Array6d joint_speed_limits, const double dt,
+bool trajectory_time_planning(const std::vector<Array6d> & trajectory, const double a_max, const double v_max,
+                              const double v_percentage, const Array6d joint_speed_limits, const double dt,
                               std::vector<double> & times,
                               std::vector<Array6d> & velocities, uint64_t & iterations, std::vector<TrajectorySample> & samples)
 {
@@ -1023,7 +1024,7 @@ bool trajectory_time_planning(const std::vector<Array6d> & trajectory, const dou
   Array6size indices_cache = trajectory_create_cache();
   const size_t max_time_index = trajectory_get_num_trajectory_samples(fragments, dt);
 
-  if (max_time_index*dt > 24.0f * 3600.0f) {
+  if (max_time_index * dt > 24.0f * 3600.0f) {
     std::cout << "Terminating execution, trajectory duration is longer than a day! (sanity check)" << std::endl;
     return false;
   }

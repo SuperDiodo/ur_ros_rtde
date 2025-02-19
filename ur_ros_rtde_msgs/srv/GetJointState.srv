@@ -2,5 +2,4 @@
 ---
 # result
 bool success
-string[] names
-float64[] values
+sensor_msgs/JointState joint_state
