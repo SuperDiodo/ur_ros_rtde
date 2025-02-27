@@ -15,24 +15,26 @@
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
 #include <visualization_msgs/msg/marker.hpp>
+#include <ur_ros_rtde_msgs/msg/io_state.hpp>
 
 using WrenchMsg = geometry_msgs::msg::WrenchStamped;
 using PoseMsg = geometry_msgs::msg::Pose;
 using JointStateMsg = sensor_msgs::msg::JointState;
 using TfMsg = tf2_msgs::msg::TFMessage;
 using MarkerMsg = visualization_msgs::msg::Marker;
+using IOStateMsg = ur_ros_rtde_msgs::msg::IOState;
 
 // SERVICES
 #include <std_srvs/srv/set_bool.hpp>
 #include <std_srvs/srv/trigger.hpp>
-#include <ur_ros_rtde_msgs/srv/get_internal_state.hpp>
+#include <ur_ros_rtde_msgs/srv/get_io_state.hpp>
 #include <ur_ros_rtde_msgs/srv/get_tcp_pose.hpp>
 #include <ur_ros_rtde_msgs/srv/get_wrench.hpp>
 #include <ur_ros_rtde_msgs/srv/get_joint_state.hpp>
 #include <ur_ros_rtde_msgs/srv/start_data_recording.hpp>
 
 using SwitchServiceType = std_srvs::srv::SetBool;
-using InternalStateServiceType = ur_ros_rtde_msgs::srv::GetInternalState;
+using IOStateServiceType = ur_ros_rtde_msgs::srv::GetIOState;
 using TcpPoseServiceType = ur_ros_rtde_msgs::srv::GetTcpPose;
 using WrenchServiceType = ur_ros_rtde_msgs::srv::GetWrench;
 using JointStateServiceType = ur_ros_rtde_msgs::srv::GetJointState;
@@ -82,11 +84,11 @@ private:
     rclcpp::Publisher<JointStateMsg>::SharedPtr fake_joint_state_pub_;
     rclcpp::Publisher<JointStateMsg>::SharedPtr real_joint_state_pub_;
     rclcpp::Publisher<TfMsg>::SharedPtr calibrated_camera_tf_pub_;
-    rclcpp::Publisher<InternalStateServiceType::Response>::SharedPtr internal_state_pub_;
+    rclcpp::Publisher<IOStateMsg>::SharedPtr io_state_pub_;
     rclcpp::Publisher<PoseMsg>::SharedPtr tcp_pose_pub_;
     rclcpp::Subscription<JointStateMsg>::SharedPtr fake_joint_state_sub_;
     rclcpp::Service<SwitchServiceType>::SharedPtr switch_joint_state_type_service_;
-    rclcpp::Service<InternalStateServiceType>::SharedPtr get_internal_state_service_;
+    rclcpp::Service<IOStateServiceType>::SharedPtr get_io_state_service_;
     rclcpp::Service<TcpPoseServiceType>::SharedPtr get_tcp_pose_service_;
     rclcpp::Service<WrenchServiceType>::SharedPtr get_wrench_service_;
     rclcpp::Service<JointStateServiceType>::SharedPtr get_joint_state_service_;
@@ -107,21 +109,19 @@ private:
     geometry_msgs::msg::TransformStamped calibrated_camera_tf_;
 
     // exchanged data
-    std::shared_ptr<internal_state> robot_internal_state_;
     std::shared_ptr<PoseMsg> tcp_pose_;
     std::shared_ptr<JointStateMsg> joint_state_;
     std::shared_ptr<WrenchMsg> wrench_;
+    std::shared_ptr<IOStateMsg> io_state_;
 
     // general variables
     int timer_iterations_ = 0;
-    std::ofstream data_record_file_;
-    std::string data_filename_ = "";
-    bool record_data_ = false;
-    data_to_record data_to_rec_;
+    bool recording_data_ = false;
+    std::string record_filename_ = "";
     
     void timer_callback();
     void switch_joint_state_type_cb(const std::shared_ptr<SwitchServiceType::Request> request, std::shared_ptr<SwitchServiceType::Response> response);
-    void get_internal_state_cb(const std::shared_ptr<InternalStateServiceType::Request> request, std::shared_ptr<InternalStateServiceType::Response> response);
+    void get_io_state_cb(const std::shared_ptr<IOStateServiceType::Request> request, std::shared_ptr<IOStateServiceType::Response> response);
     void get_tcp_pose_cb(const std::shared_ptr<TcpPoseServiceType::Request> request, std::shared_ptr<TcpPoseServiceType::Response> response);
     void get_wrench_cb(const std::shared_ptr<WrenchServiceType::Request> request, std::shared_ptr<WrenchServiceType::Response> response);
     void get_joint_state_cb(const std::shared_ptr<JointStateServiceType::Request> request, std::shared_ptr<JointStateServiceType::Response> response);

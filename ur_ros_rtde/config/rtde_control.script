@@ -198,6 +198,7 @@ def rtde_control():
     # Execute an sync or async stopl or stopj command.
     def exec_stopl_stopj(cmd, message):
       deceleration_rate = read_input_float_reg(0)
+      textmsg(deceleration_rate)
       async = read_input_integer_reg(1)
       textmsg(message, async)
       # if a stop thread is already running, we kill it so that we can restart it

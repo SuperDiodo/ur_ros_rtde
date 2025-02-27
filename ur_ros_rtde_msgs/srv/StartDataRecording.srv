@@ -1,12 +1,52 @@
 # request
 string filename ""
-bool save_tcp_pose false
-bool save_wrench false
-bool save_joint_velocities false
-bool save_joint_positions false
-bool save_digital_pins_state false
-bool save_speed_slider_value false
-bool save_payload_value false
+string[] variables
 ---
 # result
 bool success
+
+# Possible entries in <variables>:
+#
+# - timestamp (double): The timestamp of the data.
+# - target_q (double[]): Target joint positions.
+# - target_qd (double[]): Target joint velocities.
+# - target_qdd (double[]): Target joint accelerations.
+# - target_current (double[]): Target joint currents.
+# - target_moment (double[]): Target joint moments.
+# - actual_q (double[]): Actual joint positions.
+# - actual_qd (double[]): Actual joint velocities.
+# - actual_qdd (double[]): Actual joint accelerations.
+# - actual_current (double[]): Actual joint currents.
+# - actual_moment (double[]): Actual joint moments.
+# - joint_control_output (double[]): Control output for each joint.
+# - actual_TCP_pose (double[]): Actual TCP (Tool Center Point) position and orientation.
+# - actual_TCP_speed (double[]): Actual TCP velocity.
+# - actual_TCP_force (double[]): Force applied at TCP.
+# - target_TCP_pose (double[]): Target TCP position and orientation.
+# - target_TCP_speed (double[]): Target TCP velocity.
+# - actual_digital_input_bits (uint64): Bitmask of digital input states.
+# - joint_temperatures (double[]): Temperature of each joint.
+# - actual_execution_time (double): Actual execution time of the robot.
+# - robot_mode (int32): Current robot mode.
+# - joint_mode (int32[]): Mode of each joint.
+# - safety_mode (int32): Current safety mode.
+# - actual_tool_accelerometer (double[]): Tool accelerometer readings.
+# - speed_scaling (double): Speed scaling factor.
+# - target_speed_fraction (double): Target speed fraction.
+# - actual_momentum (double): Actual momentum of the robot.
+# - actual_main_voltage (double): Main power supply voltage.
+# - actual_robot_voltage (double): Voltage supplied to the robot.
+# - actual_robot_current (double): Current drawn by the robot.
+# - actual_joint_voltage (double[]): Voltage applied to each joint.
+# - actual_digital_output_bits (uint64): Bitmask of digital output states.
+# - runtime_state (uint32): Runtime state of the robot.
+# - robot_status_bits (uint32): Status bits representing robot state.
+# - safety_status_bits (uint32): Status bits representing safety state.
+# - standard_analog_input0 (double): Value of standard analog input 0.
+# - standard_analog_input1 (double): Value of standard analog input 1.
+# - standard_analog_output0 (double): Value of standard analog output 0.
+# - standard_analog_output1 (double): Value of standard analog output 1.
+# - ft_raw_wrench (double[]): Raw force-torque sensor readings.
+# - payload (double): Estimated payload weight.
+# - payload_cog (double[]): Center of gravity of the payload.
+# - payload_inertia (double[]): Inertia matrix of the payload.

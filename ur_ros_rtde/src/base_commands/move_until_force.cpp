@@ -69,7 +69,7 @@ public:
       std::shared_ptr<ur_rtde::DashboardClient> dashboard_client) override
   {
 
-    node->declare_parameter<int>(PLUGIN_NAME ".sleep", 10);
+    node->declare_parameter<int>(PLUGIN_NAME ".sleep", 2);
 
     auto bound_execute_function = std::bind(execute_function_impl, std::placeholders::_1, node, rtde_control, rtde_io, rtde_receive, dashboard_client);
     server_ = std::make_unique<command_server_template<action_type>>(

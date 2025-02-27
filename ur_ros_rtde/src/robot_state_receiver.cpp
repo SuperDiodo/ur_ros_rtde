@@ -18,7 +18,7 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
     robot_flange_link = node_->declare_parameter<std::string>("robot_flange_link", "wrist_3_link");
 
     param_string = node_->declare_parameter<std::string>("joint_states_topic", "/joint_states");
-    joint_state_pub_ = node_->create_publisher<JointStateMsg>("/joint_states", RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
+    joint_state_pub_ = node_->create_publisher<JointStateMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
     RCLCPP_INFO(node->get_logger(), "Created joint state publisher..");
 
     simulation_only_ = node_->declare_parameter<bool>("simulation_only", false);
@@ -52,12 +52,12 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
         real_joint_state_pub_ = node_->create_publisher<JointStateMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
         RCLCPP_INFO(node->get_logger(), "Created real joint state publisher..");
 
-        get_internal_state_service_ = node->create_service<InternalStateServiceType>("get_internal_state", std::bind(&robot_state_receiver::get_internal_state_cb, this, _1, _2));
-        RCLCPP_INFO(node->get_logger(), "Created service for getting the robot internal state..");
+        get_io_state_service_ = node->create_service<IOStateServiceType>("get_io_state", std::bind(&robot_state_receiver::get_io_state_cb, this, _1, _2));
+        RCLCPP_INFO(node->get_logger(), "Created service for getting the io state..");
 
-        param_string = node_->declare_parameter<std::string>("internal_state_topic", "/internal_state");
-        internal_state_pub_ = node_->create_publisher<InternalStateServiceType::Response>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
-        RCLCPP_INFO(node->get_logger(), "Created robot internal state publisher..");
+        param_string = node_->declare_parameter<std::string>("io_state_topic", "/io_state");
+        io_state_pub_ = node_->create_publisher<IOStateMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
+        RCLCPP_INFO(node->get_logger(), "Created io state publisher..");
 
         get_tcp_pose_service_ = node->create_service<TcpPoseServiceType>("get_tcp_pose", std::bind(&robot_state_receiver::get_tcp_pose_cb, this, _1, _2));
         RCLCPP_INFO(node->get_logger(), "Created service for getting the TCP pose..");
@@ -233,18 +233,18 @@ void robot_state_receiver::timer_callback()
     // Receive and update internal robot state
     if (!simulation_only_)
     {
-        if (!robot_internal_state_)
-            robot_internal_state_ = std::make_shared<internal_state>();
-        robot_internal_state_->digital_input_state.clear();
-        robot_internal_state_->digital_output_state.clear();
+        if (!io_state_)
+        io_state_ = std::make_shared<IOStateMsg>();
+        io_state_->digital_input_state.clear();
+        io_state_->digital_output_state.clear();
         for (int pin = 0; pin < 8; pin++)
         {
-            robot_internal_state_->digital_input_state.push_back(receiver_interface_->getDigitalInState(pin));
-            robot_internal_state_->digital_output_state.push_back(receiver_interface_->getDigitalOutState(pin));
+            io_state_->digital_input_state.push_back(receiver_interface_->getDigitalInState(pin));
+            io_state_->digital_output_state.push_back(receiver_interface_->getDigitalOutState(pin));
         }
 
-        robot_internal_state_->speed_slider_value = receiver_interface_->getSpeedScaling();
-        robot_internal_state_->payload_value = receiver_interface_->getPayload();
+        io_state_pub_->publish(*io_state_);
+
     }
 
     // Receive and update flange pose
@@ -267,6 +267,8 @@ void robot_state_receiver::timer_callback()
         tcp_pose_->orientation.y = quat.y();
         tcp_pose_->orientation.z = quat.z();
         tcp_pose_->orientation.w = quat.w();
+
+        tcp_pose_pub_->publish(*tcp_pose_);
     }
 
     // Receive and forward force sensor data
@@ -307,48 +309,6 @@ void robot_state_receiver::timer_callback()
         calibrated_camera_tf_pub_->publish(msg);
     }
 
-    // data recording
-    if (record_data_)
-    {
-        if (data_to_rec_.tcp_pose)
-        {
-            data_record_file_ << tcp_pose_->position.x << "," << tcp_pose_->position.y << "," << tcp_pose_->position.z << ",";
-            data_record_file_ << tcp_pose_->orientation.x << "," << tcp_pose_->orientation.y << "," << tcp_pose_->orientation.z << "," << tcp_pose_->orientation.w << ",";
-        }
-
-        if (data_to_rec_.wrench)
-        {
-            data_record_file_ << wrench_->wrench.force.x << "," << wrench_->wrench.force.y << "," << wrench_->wrench.force.z << ",";
-            data_record_file_ << wrench_->wrench.torque.x << "," << wrench_->wrench.torque.y << "," << wrench_->wrench.torque.z << ",";
-        }
-
-        if (data_to_rec_.joint_positions)
-        {
-            for (auto jp : joint_state_->position)
-                data_record_file_ << jp << ",";
-        }
-
-        if (data_to_rec_.joint_velocities)
-        {
-            for (auto jv : joint_state_->velocity)
-                data_record_file_ << jv << ",";
-        }
-
-        if (data_to_rec_.digital_pins_state)
-        {
-            for (auto in : robot_internal_state_->digital_input_state)
-                data_record_file_ << in << ",";
-            for (auto out : robot_internal_state_->digital_output_state)
-                data_record_file_ << out << ",";
-        }
-
-        if (data_to_rec_.payload_value)
-            data_record_file_ << robot_internal_state_->payload_value << ",";
-        if (data_to_rec_.speed_slider_value)
-            data_record_file_ << robot_internal_state_->speed_slider_value << ",";
-        data_record_file_ << std::endl;
-    }
-
     timer_iterations_++;
 }
 
@@ -363,7 +323,7 @@ void robot_state_receiver::switch_joint_state_type_cb(const std::shared_ptr<Swit
     response->success = true;
 }
 
-void robot_state_receiver::get_internal_state_cb(const std::shared_ptr<InternalStateServiceType::Request> request, std::shared_ptr<InternalStateServiceType::Response> response)
+void robot_state_receiver::get_io_state_cb(const std::shared_ptr<IOStateServiceType::Request> request, std::shared_ptr<IOStateServiceType::Response> response)
 {
 
     (void)request;
@@ -374,10 +334,8 @@ void robot_state_receiver::get_internal_state_cb(const std::shared_ptr<InternalS
         return;
     }
 
-    response->digital_input_state = robot_internal_state_->digital_input_state;
-    response->digital_output_state = robot_internal_state_->digital_output_state;
-    response->speed_slider_value = robot_internal_state_->speed_slider_value;
-    response->payload_value = robot_internal_state_->payload_value;
+    response->digital_input_state = io_state_->digital_input_state;
+    response->digital_output_state = io_state_->digital_output_state;
     response->success = true;
 }
 
@@ -427,37 +385,18 @@ void robot_state_receiver::get_joint_state_cb(const std::shared_ptr<JointStateSe
 void robot_state_receiver::start_data_recording_cb(const std::shared_ptr<StartDataRecordingServiceType::Request> request, std::shared_ptr<StartDataRecordingServiceType::Response> response)
 {
 
-    if (record_data_)
+    if (recording_data_)
     {
-        RCLCPP_WARN(node_->get_logger(), "Can't start recording data, it's already enabled! (data is actually saved in %s)", data_filename_.c_str());
-        response->success = true;
+        RCLCPP_WARN(node_->get_logger(), "Can't start recording data, it's already enabled! (data is actually saved in %s)", record_filename_.c_str());
+        response->success = false;
         return;
     }
 
-    data_to_rec_.digital_pins_state = request->save_digital_pins_state;
-    data_to_rec_.payload_value = request->save_payload_value;
-    data_to_rec_.joint_positions = request->save_joint_positions;
-    data_to_rec_.joint_velocities = request->save_joint_velocities;
-    data_to_rec_.speed_slider_value = request->save_speed_slider_value;
-    data_to_rec_.tcp_pose = request->save_tcp_pose;
-    data_to_rec_.wrench = request->save_wrench;
-    data_filename_ = std::string(request->filename);
-    data_record_file_.open(data_filename_);
-    if (data_to_rec_.tcp_pose)
-        data_record_file_ << "tcp_x,tcp_y,tcp_z,tcp_quat_x,tcp_quat_y,tcp_quat_z,tcp_quat_w,";
-    if (data_to_rec_.wrench)
-        data_record_file_ << "fx,fy,fz,tau_x,tau_y,tau_z,";
-    if (data_to_rec_.joint_positions)
-        data_record_file_ << "j1,j2,j3,j4,j5,j6,";
-    if (data_to_rec_.joint_velocities)
-        data_record_file_ << "v1,v2,v3,v4,v5,v6,";
-    if (data_to_rec_.digital_pins_state)
-        data_record_file_ << "DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DO0,DO1,DO2,DO3,DO4,DO5,DO6,DO7,";
-    data_record_file_ << (data_to_rec_.payload_value ? "payload_value," : "");
-    data_record_file_ << (data_to_rec_.speed_slider_value ? "speed_slider_value," : "");
-    data_record_file_ << std::endl;
-    record_data_ = true;
+    record_filename_ = request->filename;
+    receiver_interface_->startFileRecording(request->filename, request->variables); 
+    recording_data_ = true;
     response->success = true;
+    RCLCPP_INFO(node_->get_logger(), "Starting recording data, saving in file %s", record_filename_.c_str());
 }
 
 void robot_state_receiver::stop_data_recording_cb(const std::shared_ptr<StopDataRecordingServiceType::Request> request, std::shared_ptr<StopDataRecordingServiceType::Response> response)
@@ -465,12 +404,11 @@ void robot_state_receiver::stop_data_recording_cb(const std::shared_ptr<StopData
 
     (void)request;
 
-    if (record_data_)
-    {
-        record_data_ = false;
-        data_record_file_.close();
-    }
+    receiver_interface_->stopFileRecording();
+    recording_data_ = false;
+    record_filename_ = "";
     response->success = true;
+    RCLCPP_INFO(node_->get_logger(), "Stopping recording data");
 }
 
 int main(int argc, char **argv)

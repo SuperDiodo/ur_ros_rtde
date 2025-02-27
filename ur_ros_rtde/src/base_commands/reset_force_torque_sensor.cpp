@@ -24,7 +24,6 @@ void execute_function_impl(
   const auto goal = goal_handle->get_goal();
   auto result = std::make_shared<ur_ros_rtde_msgs::action::ResetForceTorqueSensor::Result>();
   check_control_interface_connection(rtde_control, node);
-
   result->result = rtde_control->zeroFtSensor();
   
   RCLCPP_INFO(node->get_logger(),

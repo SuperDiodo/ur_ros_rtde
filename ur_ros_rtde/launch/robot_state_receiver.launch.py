@@ -23,19 +23,9 @@ def generate_launch_description():
     
     robot_state_receiver_params = {
         "robot_ip": robot_ip,
-        "rtde_frequency": 20.0, # freq. (Hz) at which ur_rtde receiver interface will exchange data
-        "data_receiving_frequency": 100, # freq. (Hz) at which data is received from robot and published in topics
+        "rtde_frequency": 500, # freq. (Hz) at which ur_rtde receiver interface will exchange data
+        "data_receiving_frequency": 500, # freq. (Hz) at which data is received from robot and published in topics
         "simulation_only": simulation_only, 
-        "simulation_start_robot_state": [-1.82,-1.57,1.77,-1.77,-1.57,-0.25], # starting robot configurations for simulation only
-        "fake_joint_states_topic": "/fake_joint_states", # topic at which simulated robot configuration should be published
-        "real_joint_states_topic": "/real_joint_states", # topic at which real robot configuration are published
-        "wrench_topic": "/wrench", # topic at which wrenches are published  
-    }
-
-    robot_configuration_params = {
-        "robot_joint_names": ["shoulder_pan_joint","shoulder_lift_joint","elbow_joint","wrist_1_joint","wrist_2_joint","wrist_3_joint"],
-        "robot_base_link": "base_link_inertia",
-        "robot_flange_link": "wrist_3_link",
     }
 
     optional_attached_camera = {
@@ -74,7 +64,6 @@ def generate_launch_description():
             output="screen",
             parameters=[
                 robot_state_receiver_params,
-                robot_configuration_params,
                 optional_attached_camera
             ],
             remappings=[

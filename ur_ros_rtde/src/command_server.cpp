@@ -6,11 +6,6 @@
 #include <ur_ros_rtde/extension_base_class.hpp>
 #include "control_script_str.h"
 
-
-// TODO: 
-// 1) discover all plugins and then activate them based on a plugin list in the launch file
-// 2) create a separated thread which runs in parallel to enable/disable plugin in runtime
-
 std::vector<std::shared_ptr<ur_ros_rtde_command>> commands;
 std::vector<std::unique_ptr<pluginlib::ClassLoader<ur_ros_rtde_command>>> command_loaders;
 
@@ -47,10 +42,21 @@ int main(int argc, char **argv)
                                                           ".rtde_frequency",
                                                           500.0);
     auto load_custom_control_script = node->declare_parameter<bool>("command_server"
-                                                                               ".load_custom_control_script",
-                                                                               false);
+                                                                    ".load_custom_control_script",
+                                                                    true);
+
+    auto plugins_blacklist = node->declare_parameter<std::vector<std::string>>("command_server"
+                                                                                 ".plugins_blacklist",
+                                                                                 std::vector<std::string>());
+
+    std::unordered_set<std::string> plugins_blacklist_set;
+    for (const auto& plugin_blacklisted : plugins_blacklist) {
+        plugins_blacklist_set.insert(plugin_blacklisted);
+    }
+
 #ifndef UR_RTDE_LOAD_CUSTOM_CONTROL_SCRIPT_PATCH
-    if(load_custom_control_script) RCLCPP_WARN(node->get_logger(), "The loading of custom control script is requested but the patch to UR_RTDE was not applied. Please apply the patch (see documentation).");
+    if (load_custom_control_script)
+        RCLCPP_WARN(node->get_logger(), "The loading of custom control script is requested but the patch to UR_RTDE was not applied. Please apply the patch (see documentation).");
     load_custom_control_script = false;
 #endif
 
@@ -65,7 +71,6 @@ int main(int argc, char **argv)
     auto packages = ament_index_cpp::get_packages_with_prefixes();
     for (const auto &package : packages)
     {
-
         try
         {
             if (load_custom_control_script)
@@ -96,26 +101,32 @@ int main(int argc, char **argv)
     {
         // clear alive command requests
         rtde_io->setInputDoubleRegister(COMMAND_REQUEST_REGISTER, EXT_CMD_IDLE);
-        std::cout << "\nur_ros_rtde_extensions applied and activated:" << std::endl;
+        std::cout << "\nur_ros_rtde_extensions found:" << std::endl;
         std::string control_script;
-        // control_script = load_control_script(custom_control_script_filename);
         control_script = CUSTOM_CONTROL_SCRIPT_STR;
-        add_control_script_preamble(control_script);
+        add_control_register_interaction(control_script);
         int extension_id = 0;
+        std::unordered_set<std::string> loaded_preables;
         for (auto &ext : extension_loaders)
         {
             for (auto dc : ext->getDeclaredClasses())
             {
+
+                if(!plugins_blacklist_set.insert(ext->getClassType(dc)).second){
+                    std::cout << "\t" << ext->getClassType(dc) << ": " << ext->getClassDescription(dc) << "( skipped, blacklist )" << std::endl;
+                    continue;
+                }
+
                 std::cout << "\t" << ext->getClassType(dc) << ": " << ext->getClassDescription(dc) << std::endl;
                 auto extension_instance = ext->createSharedInstance(dc);
                 extension_instance->extension_id += ++extension_id;
-                extension_instance->get_control_script_modifications().apply_to_script(control_script);
-                extension_instance->start_action_server(node, rtde_io, rtde_receive);
+                control_script_extension str_extension;
+                extension_instance->get_control_script_modifications(str_extension);
+                if(loaded_preables.insert(str_extension.get_preamble().name).second) add_control_script_preamble(control_script, str_extension.get_preamble());
+                apply_to_script(control_script, extension_instance->extension_id, str_extension);
                 extensions.push_back(extension_instance);
             }
         }
-
-        std::cout << control_script << std::endl;
 
         temp_custom_control_script_filename = (std::filesystem::temp_directory_path() / "temp_custom_control_script_XXXXXX").string();
         int fd = mkstemp(&temp_custom_control_script_filename[0]);
@@ -125,34 +136,39 @@ int main(int argc, char **argv)
             rclcpp::on_shutdown(cleanup);
             return 0;
         }
-        RCLCPP_INFO(node->get_logger(), "Writing temporary custom control script file (%s)", temp_custom_control_script_filename.c_str());
         write_control_script(temp_custom_control_script_filename, control_script);
     }
 
-#ifdef UR_RTDE_LOAD_CUSTOM_CONTROL_SCRIPT_PATCH
     if (extension_loaders.size() > 0)
-    {
-        RCLCPP_INFO(node->get_logger(), "External URCap required, install in on the teach pendant and manually start it!");
-        rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency, ur_rtde::RTDEControlInterface::FLAG_USE_EXT_UR_CAP, 50002, RT_PRIORITY_UNDEFINED, temp_custom_control_script_filename);
-    }
+        rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency, ur_rtde::RTDEControlInterface::FLAG_UPLOAD_SCRIPT, 50002, RT_PRIORITY_UNDEFINED, temp_custom_control_script_filename);
     else
         rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency);
-#else
-    rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency);
-#endif
 
     /* activate commands */
     if (command_loaders.size() > 0)
-        std::cout << "\nur_ros_rtde_commands activated:" << std::endl;
+        std::cout << "\nur_ros_rtde_commands found:" << std::endl;
     for (auto &c : command_loaders)
     {
         for (auto dc : c->getDeclaredClasses())
         {
+
+            if(!plugins_blacklist_set.insert(c->getClassType(dc)).second){
+                std::cout << "\t" << c->getClassType(dc) << ": " << c->getClassDescription(dc) << " | skipped, blacklisted" << std::endl;
+                continue;
+            }
+
             std::cout << "\t" << c->getClassType(dc) << ": " << c->getClassDescription(dc) << std::endl;
             auto shared_instance = c->createSharedInstance(dc);
             shared_instance->start_action_server(node, rtde_control, rtde_io, rtde_receive, dashboard_client);
             commands.push_back(shared_instance);
         }
+    }
+
+    /* activate extensions */
+    if (extensions.size() > 0){
+        RCLCPP_INFO(node->get_logger(), "Temporary custom control script file written in %s", temp_custom_control_script_filename.c_str());
+        for (auto ext : extensions)
+            ext->start_action_server(node, rtde_control, rtde_io, rtde_receive, dashboard_client);
     }
 
     RCLCPP_INFO(node->get_logger(), "<Action servers ready>");

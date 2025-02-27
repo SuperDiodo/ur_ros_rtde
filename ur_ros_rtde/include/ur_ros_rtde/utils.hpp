@@ -12,46 +12,53 @@
 #include <vector>
 #include <geometry_msgs/msg/pose.hpp>
 #include <iostream>
+#include <regex>
+#include <unordered_set>
+
+// todo: move while inside try catch and test it
 
 static void check_control_interface_connection(std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control, rclcpp::Node::SharedPtr node) __attribute__((unused));
 inline void check_control_interface_connection(std::shared_ptr<ur_rtde::RTDEControlInterface> rtde_control, rclcpp::Node::SharedPtr node)
 {
-  while (!rtde_control->isConnected())
+  while (true)
   {
-    RCLCPP_INFO(node->get_logger(), "Control interface disconnected, reconnect..");
     try
     {
+      if (rtde_control->isConnected())
+      {
+        break;
+      }
       rtde_control->reconnect();
     }
     catch (...)
     {
-      RCLCPP_WARN(node->get_logger(), "Reconnection failed, waiting some time..");
-      rclcpp::sleep_for(std::chrono::milliseconds(250));
-      return;
+      RCLCPP_WARN(node->get_logger(), "RTDE Control disconnected, try reconnection..");
     }
 
-    RCLCPP_INFO(node->get_logger(), "Control interface reconnected!");
+    rclcpp::sleep_for(std::chrono::milliseconds(250));
   }
 };
 
 static void check_receive_interface_connection(std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive, rclcpp::Node::SharedPtr node) __attribute__((unused));
 inline void check_receive_interface_connection(std::shared_ptr<ur_rtde::RTDEReceiveInterface> rtde_receive, rclcpp::Node::SharedPtr node)
 {
-  while (!rtde_receive->isConnected())
+
+  while (true)
   {
-    RCLCPP_INFO(node->get_logger(), "Receive interface disconnected, reconnect..");
     try
     {
+      if (rtde_receive->isConnected())
+      {
+        break;
+      }
       rtde_receive->reconnect();
     }
     catch (...)
     {
-      RCLCPP_WARN(node->get_logger(), "Reconnection failed, waiting some time..");
-      rclcpp::sleep_for(std::chrono::milliseconds(250));
-      return;
+      RCLCPP_WARN(node->get_logger(), "RTDE Receive disconnected, try reconnection..");
     }
 
-    RCLCPP_INFO(node->get_logger(), "Receive interface reconnected!");
+    rclcpp::sleep_for(std::chrono::milliseconds(250));
   }
 };
 

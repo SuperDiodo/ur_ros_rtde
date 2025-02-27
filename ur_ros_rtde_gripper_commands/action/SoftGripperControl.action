@@ -1,9 +1,0 @@
-# request
-int16 target_width
-bool grip
----
-#result
-bool result
-int16 error
----
-#feedback

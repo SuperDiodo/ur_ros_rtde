@@ -7,4 +7,5 @@ bool depth_compensation False
 ---
 # result
 bool result
+float64 width
 ---
