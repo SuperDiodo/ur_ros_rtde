@@ -1,5 +1,5 @@
 # root
-ur_ros_rtde_command_script_executor
+ur_ros_rtde_tests
 .svn/
 .vscode/
 key.txt
@@ -25,17 +25,3 @@ ur_ros_rtde/config/camera_calibration_agritech.txt
 
 # simple_ur10e_description
 simple_ur10e_description/urdf/ur10e.urdf
-
-# devel files to remove
-ur_ros_rtde/config/rtde_control_script.txt
-ur_ros_rtde/src/test/test_trajectory_2_execution.cpp
-ur_ros_rtde/src/base_commands/execute_trajectory_old.txt
-ur_ros_rtde/src/test/test_trajectory_time_planning.cpp
-ur_ros_rtde/src/test/test_upload_custom_script.cpp
-ur_ros_rtde/src/base_commands/execute_trajectory_2.cpp
-ur_ros_rtde/trajectory_data.csv
-ur_ros_rtde_msgs/action/ExecuteTrajectory2.action
-ur_ros_rtde_simple_clients/CMakeLists_original.txt
-ur_ros_rtde_gripper_commands/CMakeLists_original.txt
-ur_ros_rtde_msgs/CMakeLists_original.txt
-ur_ros_rtde/CMakeLists_original.txt

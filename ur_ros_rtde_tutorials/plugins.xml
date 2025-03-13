@@ -1,0 +1,5 @@
+<library path="tutorial_plugins_lib">
+  <class type="MoveDownUntilForce" base_class_type="ur_ros_rtde_command">
+    <description>MoveDownUntilForce command.</description>
+  </class>
+</library>

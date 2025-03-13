@@ -6,14 +6,17 @@ def generate_launch_description():
     ######################
     #### CHANGE HERE #####
     
-    robot_ip = ""
+    command_server_params = {
+        "robot_ip": "", # robot ip
+        "command_server.plugins_blacklist": [
+            "SgGrip",
+            "SgRelease",
+            "SgGetWidth"
+        ]
+    }
 
     ######################
     #### DO NOT TOUCH ####
-    
-    command_server_params = {
-        "robot_ip": robot_ip, # robot ip
-    }
 
     nodes = []
 

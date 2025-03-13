@@ -46,11 +46,12 @@ int main(int argc, char **argv)
                                                                     true);
 
     auto plugins_blacklist = node->declare_parameter<std::vector<std::string>>("command_server"
-                                                                                 ".plugins_blacklist",
-                                                                                 std::vector<std::string>());
+                                                                               ".plugins_blacklist",
+                                                                               std::vector<std::string>());
 
     std::unordered_set<std::string> plugins_blacklist_set;
-    for (const auto& plugin_blacklisted : plugins_blacklist) {
+    for (const auto &plugin_blacklisted : plugins_blacklist)
+    {
         plugins_blacklist_set.insert(plugin_blacklisted);
     }
 
@@ -112,7 +113,8 @@ int main(int argc, char **argv)
             for (auto dc : ext->getDeclaredClasses())
             {
 
-                if(!plugins_blacklist_set.insert(ext->getClassType(dc)).second){
+                if (!plugins_blacklist_set.insert(ext->getClassType(dc)).second)
+                {
                     std::cout << "\t" << ext->getClassType(dc) << ": " << ext->getClassDescription(dc) << "( skipped, blacklist )" << std::endl;
                     continue;
                 }
@@ -122,7 +124,8 @@ int main(int argc, char **argv)
                 extension_instance->extension_id += ++extension_id;
                 control_script_extension str_extension;
                 extension_instance->get_control_script_modifications(str_extension);
-                if(loaded_preables.insert(str_extension.get_preamble().name).second) add_control_script_preamble(control_script, str_extension.get_preamble());
+                if (loaded_preables.insert(str_extension.get_preamble().name).second)
+                    add_control_script_preamble(control_script, str_extension.get_preamble());
                 apply_to_script(control_script, extension_instance->extension_id, str_extension);
                 extensions.push_back(extension_instance);
             }
@@ -139,10 +142,14 @@ int main(int argc, char **argv)
         write_control_script(temp_custom_control_script_filename, control_script);
     }
 
+#ifndef UR_RTDE_LOAD_CUSTOM_CONTROL_SCRIPT_PATCH
+    rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency);
+#else
     if (extension_loaders.size() > 0)
         rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency, ur_rtde::RTDEControlInterface::FLAG_UPLOAD_SCRIPT, 50002, RT_PRIORITY_UNDEFINED, temp_custom_control_script_filename);
     else
         rtde_control = std::make_shared<ur_rtde::RTDEControlInterface>(robot_ip, rtde_frequency);
+#endif
 
     /* activate commands */
     if (command_loaders.size() > 0)
@@ -152,7 +159,8 @@ int main(int argc, char **argv)
         for (auto dc : c->getDeclaredClasses())
         {
 
-            if(!plugins_blacklist_set.insert(c->getClassType(dc)).second){
+            if (!plugins_blacklist_set.insert(c->getClassType(dc)).second)
+            {
                 std::cout << "\t" << c->getClassType(dc) << ": " << c->getClassDescription(dc) << " | skipped, blacklisted" << std::endl;
                 continue;
             }
@@ -165,7 +173,8 @@ int main(int argc, char **argv)
     }
 
     /* activate extensions */
-    if (extensions.size() > 0){
+    if (extensions.size() > 0)
+    {
         RCLCPP_INFO(node->get_logger(), "Temporary custom control script file written in %s", temp_custom_control_script_filename.c_str());
         for (auto ext : extensions)
             ext->start_action_server(node, rtde_control, rtde_io, rtde_receive, dashboard_client);

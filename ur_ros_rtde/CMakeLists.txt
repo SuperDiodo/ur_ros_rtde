@@ -145,25 +145,6 @@ install(
 )
 endif()
 
-# Tests
-# Find all .cpp files in the test directory
-file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/test/*.cpp")
-
-foreach(TEST_SOURCE ${TEST_SOURCES})
-    get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
-    add_executable(${TEST_NAME} ${TEST_SOURCE})
-    ament_target_dependencies(${TEST_NAME} ${dependencies})
-    target_link_libraries(${TEST_NAME} ${Eigen3_LIBRARIES})
-    if(TEST_NAME STREQUAL "test_upload_custom_script")
-        target_link_libraries(${TEST_NAME} ur_rtde::rtde)
-    endif()
-
-    # Install the test executable
-    install(TARGETS
-        ${TEST_NAME}
-        DESTINATION lib/${PROJECT_NAME})
-endforeach()
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   set(ament_cmake_copyright_FOUND TRUE)

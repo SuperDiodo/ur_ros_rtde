@@ -28,14 +28,6 @@ def generate_launch_description():
         "simulation_only": simulation_only, 
     }
 
-    optional_attached_camera = {
-        "camera_calibration_file": "", # file containing the calibration matrix of the camera, it can be empty!
-        "calibrated_camera_parent_tf_name": "",  # link at which the calibrated camera tf should be linked
-        "calibrated_camera_tf_name": "", # calibrated camera tf name
-        "position_offset": [0.0,0.0,0.0], # position offset of the calibrated camera tf
-        "orientation_offset": [0.0,0.0,0.0], # orientation offset of the calibrated camera tf
-    }
-
     ######################
     #### DO NOT TOUCH ####
 
@@ -64,7 +56,6 @@ def generate_launch_description():
             output="screen",
             parameters=[
                 robot_state_receiver_params,
-                optional_attached_camera
             ],
             remappings=[
                 ('/ur_ros_rtde/tf', '/tf'),
@@ -72,18 +63,19 @@ def generate_launch_description():
         )
     )
 
-    nodes.append(SetParameter(name='robot_description', value=robot_desc),)
-    nodes.append(
-            Node(
-                package='robot_state_publisher',
-                executable='robot_state_publisher',
-                name='robot_state_publisher',
-                output='screen',
-                parameters=[
-                    state_pusblisher_params
-                ],
-                arguments=[urdf])
-    )
+    if robot_description_package != "":
+        nodes.append(SetParameter(name='robot_description', value=robot_desc),)
+        nodes.append(
+                Node(
+                    package='robot_state_publisher',
+                    executable='robot_state_publisher',
+                    name='robot_state_publisher',
+                    output='screen',
+                    parameters=[
+                        state_pusblisher_params
+                    ],
+                    arguments=[urdf])
+        )
 
     if launch_moveit:
         nodes.append(launch.actions.IncludeLaunchDescription(

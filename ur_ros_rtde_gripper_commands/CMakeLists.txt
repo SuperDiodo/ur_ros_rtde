@@ -76,7 +76,6 @@ ament_export_include_directories(
 )
 
 ament_export_libraries(
-  gripper_commands_lib
   gripper_control_script_extension_lib
 )
 ament_export_targets(
