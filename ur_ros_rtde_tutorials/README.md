@@ -13,7 +13,7 @@ The proposed software is composed of three ROS2 nodes:
   - [ur_ros_rtde/launch/dashboard_server.launch.py](../ur_ros_rtde/launch/dashboard_server.launch.py)
   - [ur_ros_rtde/include/ur_ros_rtde/dashboard_command_base_class.hpp](../ur_ros_rtde/include/ur_ros_rtde/dashboard_command_base_class.hpp)
 
-You can easily interact with ROS2 services and actions using header files provided in [ur_ros_rtde_simple_clients](ur_ros_rtde_simple_clients). For further details and documentation, please visit [ur_ros_rtde](ur_ros_rtde).
+You can easily interact with ROS2 services and actions using header files provided in [ur_ros_rtde_simple_clients](ur_ros_rtde_simple_clients). For further details and documentation, please visit [ur_ros_rtde](../ur_ros_rtde).
 
 ## Run examples
 
