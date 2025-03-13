@@ -32,7 +32,7 @@ To retrieve the robot state *RobotStateReceiver* must be used.
     ros2 launch ur_ros_rtde robot_state_receiver.launch.py
     ```
 
-At this point the robot state will be accessed with topics and services.
+At this point, the robot state can be accessed using topics and services.
 
 3. Print joint states:
     ```bash
@@ -42,7 +42,7 @@ At this point the robot state will be accessed with topics and services.
 
 #### Visualize the robot in RViz
 
-*RobotStateReceiver* does not require any URDF of the robot, but URDF files are required to visualize the robot in tools like RViz. If a ROS2 description package of a UR robot is already available skip to step 2 and use the that package instead of `simple_ur10e_description`.
+*RobotStateReceiver* does not require any URDF of the robot, but URDF files are required to visualize the robot in tools like RViz. If a ROS2 description package of a UR robot is already available, skip to step 2 and use that package instead of `simple_ur10e_description`.
 
 1. In `simple_ur10e_description` generate UR10e URDF file from xacro files.
     ```bash
@@ -91,7 +91,7 @@ In `ur_ros_rtde` commands are defined as plugins and exposed as action servers. 
     ros2 action list
     ```
 
-The file `command_server.launch.py` can also be used to define a blacklist of plugin which must not be loaded. By default, the plugins implemented in `ur_ros_rtde_gripper_commands` are disabled, since they rely on the presence of specific hardware.
+The file `command_server.launch.py` can also be used to define a blacklist of plugins which must not be loaded. By default, the plugins implemented in `ur_ros_rtde_gripper_commands` are disabled, since they rely on the presence of specific hardware.
 
 #### Move the robot
 
@@ -126,7 +126,7 @@ In this tutorial package are provided 3 examples which can be used to move the r
     <img src="../images/dual_traj.gif">
   </p>
 
-  This example only require an instance of the *CommandServer* and can be executed as shown below:
+This example only requires an instance of the *CommandServer* and can be executed as shown below:
 
   ```bash
   # type in a new terminal

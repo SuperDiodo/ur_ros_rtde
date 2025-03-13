@@ -12,9 +12,9 @@ This project is currently under development, with ongoing updates and enhancemen
 ## Capabilities of `ur_ros_rtde`
 - Reception of various data (joint states, forces, torques, etc.) which is made available in topics and as services.
 - High-level URScript commands are exposed as action servers (*MoveL*, *MoveJ*, etc.)
-- Composite commands as trajectory execution or moving the robot linearly until a force is detected are also exposed as action servers.
+- Composite commands, such as trajectory execution or moving the robot linearly until a force is detected, are also exposed as action servers.
 - New commands can be added thanks to a plugin system.
-- Easy integration with ROS-based tool as RViz or MoveIt.
+- Easy integration with ROS-based tools such as RViz or MoveIt.
 
 <p align="center">
   <img src="images/dual.gif">
@@ -26,7 +26,7 @@ This project is currently under development, with ongoing updates and enhancemen
 - **`ur_ros_rtde`**) core implementation of the driver. It includes the implementation of the following ROS2 nodes:
   - *RobotStateReceiver*: retrieves the robot state.
   - *CommandServer*: exposes high-level URScript commands as actions.
-  - *DashboardServer*: esposes commands related to *Dashboard Client* interface.
+  - *DashboardServer*: exposes commands related to *Dashboard Client* interface.
 - **`ur_ros_rtde_msgs`**) ROS2 package containing the definition of:
   - messages and services advertised by *RobotStateReceiver*
   - actions exposed by *CommandServer*
@@ -66,7 +66,7 @@ To utilize the proposed software, you need to install `ur_rtde` and `ROS2`.
 
 #### Install Robot Operating System 2 (`ROS2`)
 
-This version of `ur_ros_rtde` is tested with installing ROS2 **Humble** ([installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)).
+This version of `ur_ros_rtde` has been tested with ROS2 **Humble** ([installation guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)).
 
 Additionally, install the following packages:
   ```bash
@@ -76,7 +76,7 @@ Additionally, install the following packages:
 
 (Optional) Install **MoveIt!**:
 
-The data retrieved by *RobotStateReceiver* ROS2 node in `ur_ros_rtde` can be used with `MoveIt!` framework.
+The data retrieved by *RobotStateReceiver* ROS2 node in `ur_ros_rtde` can be used with the `MoveIt!` framework.
 
   ```bash
   sudo apt install ros-humble-moveit

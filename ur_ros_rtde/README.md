@@ -9,7 +9,7 @@
 - `launch_rviz`: if enabled, an instance of RViz will be launched along with the robot state receiver node. If also `launch_moveit` is enabled, instead of launching an instance of RViz, `/launch/moveit_rviz.launch.py` contained in `moveit_config_pkg` is launched.
 - `simulation_only`: if enabled, fake data are made available through topics and services. It can be used to simulate a trajectory in non-realistic environment.
 - `rtde_frequency`: frequency (hz) at which `ur_rtde` will work.
-- `data_receiving_frequency`: frequency (hz) at which the robot state receiver will update robot informations as the robot pose, configuration, etc. .
+- `data_receiving_frequency`: frequency (hz) at which the robot state receiver will update robot informations as the robot pose, configuration, etc.
 - `simulation_start_robot_state`: if `simulation_only` it's `true`, this will be the initial robot configuration.
 
 #### Robot state published in topics and accessible with services
@@ -30,25 +30,25 @@
 
 - `send_custom_script_command`: send custom UrScript to the robot.
 
-- `set_digital_pin_command`: set a digital output pin to a specific state-
+- `set_digital_pin_command`: set a digital output pin to a specific state.
 
-- `set_payload_command`: set the payload of the robot-
+- `set_payload_command`: set the payload of the robot.
 
-- `set_speed_slider_command`: set the speed slider value of the teach pendant-
+- `set_speed_slider_command`: set the speed slider value of the teach pendant.
 
 - `set_freedrive_command`: activate the freedrive mode of the robot. **free_axes** is an integer vector to activate or deactivate robot movements on X,Y,Z,Roll,Pitch,Yaw axes (1 is activated, 0 is deactivated).
 
-- `reset_force_torque_sensor_command`: reset the FT sensor-
+- `reset_force_torque_sensor_command`: reset the FT sensor.
 
-- `move_l_command`: move the robot with linear movements in the tool-space.
+- `move_l_command`: move the robot with linear movements in the tool space.
 
-- `move_j_command`: move the robot with linear movements in the joint-space.
+- `move_j_command`: move the robot with linear movements in the joint space.
 
-- `move_l_relative_command`: relative movement, linear in the tool-space, of the robot with respect to the actual pose.
+- `move_l_relative_command`: relative movement, linear in the tool space, of the robot with respect to the actual pose.
 
-- `move_j_relative_command`: relative movement, linear in the joint-space, of the robot with respect to the actual configuration.
+- `move_j_relative_command`: relative movement, linear in the joint space, of the robot with respect to the actual configuration.
 
-- `move_until_contact_command`: move the TCP along a given direction until a contact is detected and then retract the robot at the last non-colliding configuration. It is possible to define a **direction** of the contact to detect. If direction is set to all -1 values all possible contacts are detected. 
+- `move_until_contact_command`: move the TCP along a given direction until a contact is detected and then retract the robot at the last non-colliding configuration. It is possible to define a **direction** of the contact to detect. If direction is set to all -1 values all possible contacts are detected.
 
 - `move_until_force_command`: move the TCP given XYZ offset until a force is detected. It is possible to define a **direction** of the force and a minimum value.
 
