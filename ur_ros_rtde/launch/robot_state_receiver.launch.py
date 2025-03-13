@@ -23,28 +23,13 @@ def generate_launch_description():
     
     robot_state_receiver_params = {
         "robot_ip": robot_ip,
-        "rtde_frequency": 500, # freq. (Hz) at which ur_rtde receiver interface will exchange data
+        "rtde_frequency": 500.0, # freq. (Hz) at which ur_rtde receiver interface will exchange data
         "data_receiving_frequency": 500, # freq. (Hz) at which data is received from robot and published in topics
         "simulation_only": simulation_only, 
     }
 
     ######################
     #### DO NOT TOUCH ####
-
-    urdf = os.path.join(
-        get_package_share_directory(robot_description_package),
-        urdf_file_name)
-    with open(urdf, 'r') as infp:
-        robot_desc = infp.read()
-
-    state_pusblisher_params = {
-        "use_sim_time":False,
-        "robot_description": robot_desc,
-    }
-
-    rviz_params = {
-        "robot_description": robot_desc,
-    }
 
     nodes = []
 
@@ -64,6 +49,20 @@ def generate_launch_description():
     )
 
     if robot_description_package != "":
+
+        urdf = os.path.join(get_package_share_directory(robot_description_package),urdf_file_name)
+        with open(urdf, 'r') as infp:
+            robot_desc = infp.read()
+
+        state_pusblisher_params = {
+            "use_sim_time":False,
+            "robot_description": robot_desc,
+        }
+
+        rviz_params = {
+            "robot_description": robot_desc,
+        }
+
         nodes.append(SetParameter(name='robot_description', value=robot_desc),)
         nodes.append(
                 Node(

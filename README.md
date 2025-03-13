@@ -91,7 +91,10 @@ The data retrieved by *RobotStateReceiver* ROS2 node in `ur_ros_rtde` can be use
 # clone ur_ros_rtde repository
 git clone https://github.com/SuperDiodo/ur_ros_rtde.git
 
-# build ur_ros_rtde
+# build ur_ros_rtde only (optional packages will be ignored)
+colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to ur_ros_rtde
+
+# or build the entire workspace
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
 

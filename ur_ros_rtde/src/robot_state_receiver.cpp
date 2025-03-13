@@ -414,8 +414,8 @@ void robot_state_receiver::stop_data_recording_cb(const std::shared_ptr<StopData
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("ur_ros_rtde_robot_state_receiver_node");
-    std::shared_ptr<rclcpp::Node> node_srv = rclcpp::Node::make_shared("ur_ros_rtde_srv_node");
+    std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("robot_state_receiver_node");
+    std::shared_ptr<rclcpp::Node> node_srv = rclcpp::Node::make_shared("robot_state_receiver_srv_node");
     auto rsr = robot_state_receiver(node);
     rclcpp::spin(node);
     rclcpp::shutdown();

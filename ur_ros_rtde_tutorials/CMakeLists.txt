@@ -91,7 +91,6 @@ ament_export_targets(
 # Examples
 set(EXAMPLES_SOURCES
     src/linear_movements.cpp
-    src/linear_moving_force_sensing.cpp
     src/trajectory_execution.cpp
 )
 
