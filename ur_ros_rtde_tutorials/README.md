@@ -10,10 +10,10 @@ The proposed software is composed of three ROS2 nodes:
   - [ur_ros_rtde/include/ur_ros_rtde/extension_base_class.hpp](../ur_ros_rtde/include/ur_ros_rtde/extension_base_class.hpp)
 
 - *DashboardServer* ) discovers and loads `ur_ros_rtde_dashboard_commands` plugins available in the ROS2 workspace. Each plugin starts a ROS2 action server. Reference files:
-  - `ur_ros_rtde/launch/dashboard_server.launch.py`
-  - `ur_ros_rtde/include/ur_ros_rtde/dashboard_command_base_class.hpp`
+  - [ur_ros_rtde/launch/dashboard_server.launch.py](../ur_ros_rtde/launch/dashboard_server.launch.py)
+  - [ur_ros_rtde/include/ur_ros_rtde/dashboard_command_base_class.hpp](../ur_ros_rtde/include/ur_ros_rtde/dashboard_command_base_class.hpp)
 
-You can easily interact with ROS2 services and actions using header files provided in `ur_ros_rtde_simple_clients`. For further details and documentation, please visit [`ur_ros_rtde`](https://github.com/SuperDiodo/ur_ros_rtde/tree/main/ur_ros_rtde).
+You can easily interact with ROS2 services and actions using header files provided in [ur_ros_rtde_simple_clients](ur_ros_rtde_simple_clients). For further details and documentation, please visit [ur_ros_rtde](ur_ros_rtde).
 
 ## Run examples
 
@@ -85,7 +85,7 @@ In `ur_ros_rtde` commands are defined as plugins and exposed as action servers. 
     # type in a new terminal
     ros2 launch ur_ros_rtde command_server.launch.py
     ```
-3. List the available commands (more info at [ur_ros_rtde](../ur_ros_rtde/README.md)):
+3. List the available commands (more info at [ur_ros_rtde](../ur_ros_rtde)):
     ```bash
     # type in a new terminal
     ros2 action list
