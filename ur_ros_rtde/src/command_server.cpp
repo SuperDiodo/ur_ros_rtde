@@ -76,14 +76,12 @@ int main(int argc, char **argv)
     {
         try
         {
-            if (load_custom_control_script)
+
+            auto extension_loader = std::make_unique<pluginlib::ClassLoader<ur_ros_rtde_extension>>(package.first, "ur_ros_rtde_extension");
+            if (extension_loader->getDeclaredClasses().size() > 0)
             {
-                auto extension_loader = std::make_unique<pluginlib::ClassLoader<ur_ros_rtde_extension>>(package.first, "ur_ros_rtde_extension");
-                if (extension_loader->getDeclaredClasses().size() > 0)
-                {
-                    std::cout << "Found ur_ros_rtde_extension definitions in " << package.first << " package" << std::endl;
-                    extension_loaders.push_back(std::move(extension_loader));
-                }
+                std::cout << "Found ur_ros_rtde_extension definitions in " << package.first << " package" << std::endl;
+                extension_loaders.push_back(std::move(extension_loader));
             }
 
             auto command_loader = std::make_unique<pluginlib::ClassLoader<ur_ros_rtde_command>>(package.first, "ur_ros_rtde_command");
