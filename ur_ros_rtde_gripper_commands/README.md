@@ -1,26 +1,37 @@
-# External Hardware
+# Gripper commands examples
 
-The commands in `ur_ros_rtde` can be easily extended with custom commands. Examples for controlling real grippers, available in `ur_ros_rtde_gripper_commands`, are shown below.
+Add-on devices such as robot grippers often require software extensions, called URCaps, to be installed on the robot controller. URCaps typically provide custom instructions which are not part of standard URScript. Plugins of the *extension* type are used so that custom instructions can be called by `ur_ros_rtde`.
 
-### Schmalz GCPi vacuum generator:
+#### OnRobot soft gripper
 
-In order to control the Schmalz GCPi vaccum generator it must be connected to the UR control box with 2 input digital pins and 2 ouput digital pins. 
+In this package are provided implementation examples of commands that can be used to interact with an OnRobot soft gripper. To control the gripper it is mandatory to:
 
-- `set_deposit_command`: set state of the gripper deposit, it uses `set_deposit_command.deposit_pin` to get the digital pin to enable gripper deposit.
-- `set_suction_command`: set state of the gripper suction, it uses `set_suction_command.deposit_pin` to get the digital pin to enable gripper suction.
+1. Install the OnRobot URCap using the robot teach pendant.
+2. Clone `ur_rtde`, apply the [patch](../ur_ros_rtde/config/ur_rtde_7bd8f3481877cc9aeec2cbb2b109326b6bbab282.patch) provided in `ur_ros_rtde` and then install the cloned software.
+    ```bash
+    # optional: remove ur_rtde binaries if installed with apt
+    sudo apt remove --purge librtde librtde-dev
 
+    # clone ur_rtde
+    git clone https://gitlab.com/sdurobotics/ur_rtde.git
+    cd ur_rtde
+    git submodule update --init --recursive
 
-### OnRobot Soft Gripper (SG):
+    # apply the patch
+    git apply <path>.patch
 
-In order to control the OnRobot SG it is mandatory to:
-1. Install the OnRobot URCap available with the gripper.
-2. Copy our custom UrScript `sg_control_program.urp` from the config folder to the robot.
+    # install ur_rtde
+    mkdir build
+    cd build
+    cmake ..
+    make 
+    sudo make install
+    ```
+3. Compile `ur_ros_rtde_gripper_commands` package.
+    ```bash
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to ur_ros_rtde_gripper_commands
+    ```
 
-The command server will exchange data by writing and reading the robot controller registers (defined as ROS2 params): 
+4. Remove the plugins implemented in this package from the blacklist in the [launch file](../ur_ros_rtde/launch/command_server.launch.py). 
 
-- `soft_gripper_control_command.grip_bool_input_register`: input register at which the robot expects to get the open/close signal.
-- `soft_gripper_control_command.desired_width_input_register`: input register at which the robot expects to get the desired width.
-- `soft_gripper_control_command.feedback_width_output_register`: output register at which the robot expects to get the width of the gripper after the action.
-
-The SG can be controlled with:
-- `soft_gripper_control_command`: if **grip** is `false` then the gripper will close until **target_width** is reached, otherwise it will open. If the action can't be execute withing a time limit the action will exit. In **error** will be store the difference between the desired and the actual width of the SG. 
+If everything was set up as indicated above, the *CommandServer* will be able to discover and load the plugins related to OnRobot commands. Each command, as done for the other plugins, will be exposed as an action server. The command server can be launched and commands can be requested to the robot as shown in the [tutorials](../ur_ros_rtde_tutorials/).

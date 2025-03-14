@@ -106,3 +106,4 @@ In `ur_ros_rtde` ROS2 package are provided simple launch files which can be conf
 - `ur_ros_rtde/launch/dashboard_server.launch.py`: launch the *DashboardServer* node.
 
 Tutorials on how use these files and run examples are provided in [ur_ros_rtde_tutorials](ur_ros_rtde_tutorials).
+In [ur_ros_rtde_gripper_commands](ur_ros_rtde_gripper_commands) there is the implementation of commands that can be used to control an OnRobot soft gripper.
