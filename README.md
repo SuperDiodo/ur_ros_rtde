@@ -17,7 +17,7 @@ This project is currently under development, with ongoing updates and enhancemen
 - Easy integration with ROS-based tools such as RViz or MoveIt.
 
 <p align="center">
-  <img src="images/dual.gif">
+  <img src="images/dual_traj.gif">
 </p>
 
 ---
