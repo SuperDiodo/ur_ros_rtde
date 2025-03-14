@@ -101,15 +101,20 @@ In this tutorial package are provided 3 examples which can be used to move the r
 - **Execute linear movements**:
   The robot performs small linear movements along the X-axis printing the robot pose after each movement. The robot state is retrieved with services exposed by *RobotStateReceiver*. Commands are sent to the robot with the *CommandServer*.
 
+  1. Configure and launch *RobotStateReceiver*, set `launch_rviz = True` if you want to see the robot moving in RViz:
+        ```bash
+        # type in a new terminal
+        ros2 launch ur_ros_rtde robot_state_receiver.launch.py
+        ```
 
-  1. Configure `command_server.launch.py` setting ip address with `robot_ip`
+  2. Configure `command_server.launch.py` setting ip address with `robot_ip`.
 
-  2. Launch *CommandServer*:
+  3. Launch *CommandServer*:
       ```bash
       # type in a new terminal
       ros2 launch ur_ros_rtde command_server.launch.py
       ```
-  3. Run executables:
+  4. Run executables:
 
       **WARNING**! If everything was successfully configured the robot will start moving! Check for possible collisions with the environment!
       
