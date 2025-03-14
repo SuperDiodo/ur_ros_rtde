@@ -41,10 +41,6 @@ int main(int argc, char **argv)
     auto rtde_frequency = node->declare_parameter<double>("command_server"
                                                           ".rtde_frequency",
                                                           500.0);
-    auto load_custom_control_script = node->declare_parameter<bool>("command_server"
-                                                                    ".load_custom_control_script",
-                                                                    true);
-
     auto plugins_blacklist = node->declare_parameter<std::vector<std::string>>("command_server"
                                                                                ".plugins_blacklist",
                                                                                std::vector<std::string>());
@@ -54,6 +50,8 @@ int main(int argc, char **argv)
     {
         plugins_blacklist_set.insert(plugin_blacklisted);
     }
+
+    auto load_custom_control_script = true;
 
 #ifndef UR_RTDE_LOAD_CUSTOM_CONTROL_SCRIPT_PATCH
     if (load_custom_control_script)
@@ -105,7 +103,10 @@ int main(int argc, char **argv)
     }
 
     /* adapt control script with extension */
-    if (extension_loaders.size() > 0)
+    if(extension_loaders.size() > 0 && !load_custom_control_script){
+        RCLCPP_WARN(node->get_logger(), "ur_rtde_extension commands cannot be loaded because the UR_RTDE patch was not applied. Please apply the patch (see ur_ros_rtde_gripper_commands documentation).");
+    }
+    else if (extension_loaders.size() > 0 && load_custom_control_script)
     {
         // clear alive command requests
         rtde_io->setInputDoubleRegister(COMMAND_REQUEST_REGISTER, EXT_CMD_IDLE);

@@ -29,6 +29,7 @@ In this package are provided implementation examples of commands that can be use
     ```
 3. Compile `ur_ros_rtde_gripper_commands` package.
     ```bash
+    cd <ros_workspace_path>
     colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to ur_ros_rtde_gripper_commands
     ```
 

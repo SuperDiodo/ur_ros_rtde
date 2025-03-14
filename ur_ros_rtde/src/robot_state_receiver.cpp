@@ -45,7 +45,7 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
     if (!simulation_only_)
     {
         param_string = node_->declare_parameter<std::string>("robot_ip", "127.0.0.1");
-        param_double = node_->declare_parameter<double>("robot_state_receiver.rtde_frequency", 100.0);
+        param_double = node_->declare_parameter<double>("robot_state_receiver.rtde_frequency", 500.0);
         receiver_interface_ = std::make_shared<ur_rtde::RTDEReceiveInterface>(param_string, param_double);
 
         param_string = node_->declare_parameter<std::string>("robot_state_receiver.real_joint_states_topic", "/real_joint_states");
@@ -152,7 +152,7 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    param_int = node_->declare_parameter<int>("robot_state_receiver.data_receiving_frequency", 100);
+    param_int = node_->declare_parameter<int>("robot_state_receiver.data_receiving_frequency", 500);
     int freq = (1000.0 / (double)param_int);
     timer_ = node_->create_wall_timer(
         std::chrono::milliseconds(freq),

@@ -72,6 +72,7 @@ Additionally, install the following packages:
   ```bash
   sudo apt install python3-colcon-common-extensions
   sudo apt-get install ros-humble-controller-manager
+  sudo apt install ros-humble-xacro 
   ```
 
 (Optional) Install **MoveIt!**:
@@ -88,12 +89,12 @@ The data retrieved by *RobotStateReceiver* ROS2 node in `ur_ros_rtde` can be use
 
 #### Install `ur_ros_rtde`
 ```bash
+cd <ros_workspace_path>/src
 # clone ur_ros_rtde repository
 git clone https://github.com/SuperDiodo/ur_ros_rtde.git
-
+cd ..
 # build ur_ros_rtde only (optional packages will be ignored)
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to ur_ros_rtde
-
 # or build the entire workspace
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```

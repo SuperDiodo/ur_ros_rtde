@@ -51,7 +51,8 @@ At this point, the robot state can be accessed using topics and services.
     sh generate_urdf.sh ur10e.xacro ur10e.urdf
 
     # build again the package to make the urdf visible
-    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+    cd <ros_workspace_path>
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to simple_ur10e_description
     ```
 
 2. Configure `robot_state_receiver.launch.py`:
