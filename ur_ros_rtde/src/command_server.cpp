@@ -67,6 +67,13 @@ int main(int argc, char **argv)
     rtde_io = std::make_shared<ur_rtde::RTDEIOInterface>(robot_ip);
     dashboard_client = std::make_shared<ur_rtde::DashboardClient>(robot_ip);
     dashboard_client->connect();
+
+    if(!dashboard_client->isInRemoteControl()){
+        RCLCPP_ERROR(node->get_logger(), "Robot must be in remote control! Exiting..");
+        rclcpp::shutdown();
+        return 0;
+    }
+
     RCLCPP_INFO(node->get_logger(), "Init done, discovering plugins..");
 
     auto packages = ament_index_cpp::get_packages_with_prefixes();

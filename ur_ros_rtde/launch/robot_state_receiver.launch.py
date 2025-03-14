@@ -23,9 +23,7 @@ def generate_launch_description():
     
     robot_state_receiver_params = {
         "robot_ip": robot_ip,
-        "rtde_frequency": 500.0, # freq. (Hz) at which ur_rtde receiver interface will exchange data
-        "data_receiving_frequency": 500, # freq. (Hz) at which data is received from robot and published in topics
-        "simulation_only": simulation_only, 
+        "robot_state_receiver.simulation_only": simulation_only, 
     }
 
     ######################

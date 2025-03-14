@@ -6,7 +6,7 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
     int param_int;
     double param_double;
 
-    joint_names_ = node_->declare_parameter<std::vector<std::string>>("joint_names", std::vector<std::string>{
+    joint_names_ = node_->declare_parameter<std::vector<std::string>>("robot_state_receiver.joint_names", std::vector<std::string>{
                                                                                          "shoulder_pan_joint",
                                                                                          "shoulder_lift_joint",
                                                                                          "elbow_joint",
@@ -14,62 +14,62 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
                                                                                          "wrist_2_joint",
                                                                                          "wrist_3_joint"});
 
-    robot_base_link = node_->declare_parameter<std::string>("robot_base_link", "base_link_inertia");
-    robot_flange_link = node_->declare_parameter<std::string>("robot_flange_link", "wrist_3_link");
+    robot_base_link = node_->declare_parameter<std::string>("robot_state_receiver.robot_base_link", "base_link_inertia");
+    robot_flange_link = node_->declare_parameter<std::string>("robot_state_receiver.robot_flange_link", "wrist_3_link");
 
-    param_string = node_->declare_parameter<std::string>("joint_states_topic", "/joint_states");
+    param_string = node_->declare_parameter<std::string>("robot_state_receiver.joint_states_topic", "/joint_states");
     joint_state_pub_ = node_->create_publisher<JointStateMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
     RCLCPP_INFO(node->get_logger(), "Created joint state publisher..");
 
-    simulation_only_ = node_->declare_parameter<bool>("simulation_only", false);
+    simulation_only_ = node_->declare_parameter<bool>("robot_state_receiver.simulation_only", false);
 
-    param_string = node_->declare_parameter<std::string>("fake_joint_states_topic", "/fake_joint_states");
+    param_string = node_->declare_parameter<std::string>("robot_state_receiver.fake_joint_states_topic", "/fake_joint_states");
     fake_joint_state_pub_ = node_->create_publisher<JointStateMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
     RCLCPP_INFO(node->get_logger(), "Created fake joint state publisher..");
 
     fake_joint_state_sub_ = node->create_subscription<JointStateMsg>(param_string, 10, std::bind(&robot_state_receiver::subscriber_callback, this, _1));
     RCLCPP_INFO(node->get_logger(), "Created subscriber to fake joint states..");
 
-    param_string = node_->declare_parameter<std::string>("publish_fake_joint_state_service_name", "publish_fake_joint_states");
+    param_string = node_->declare_parameter<std::string>("robot_state_receiver.publish_fake_joint_state_service_name", "publish_fake_joint_states");
     switch_joint_state_type_service_ = node->create_service<SwitchServiceType>(param_string, std::bind(&robot_state_receiver::switch_joint_state_type_cb, this, _1, _2));
     RCLCPP_INFO(node->get_logger(), "Created service for switching between fake and real joint states..");
 
-    param_string = node_->declare_parameter<std::string>("start_data_recording_service_name", "start_data_recording");
+    param_string = node_->declare_parameter<std::string>("robot_state_receiver.start_data_recording_service_name", "start_data_recording");
     start_data_recording_service_ = node->create_service<StartDataRecordingServiceType>(param_string, std::bind(&robot_state_receiver::start_data_recording_cb, this, _1, _2));
     RCLCPP_INFO(node->get_logger(), "Created service for starting data recording..");
 
-    param_string = node_->declare_parameter<std::string>("stop_data_recording_service_name", "stop_data_recording");
+    param_string = node_->declare_parameter<std::string>("robot_state_receiver.stop_data_recording_service_name", "stop_data_recording");
     stop_data_recording_service_ = node->create_service<StopDataRecordingServiceType>(param_string, std::bind(&robot_state_receiver::stop_data_recording_cb, this, _1, _2));
     RCLCPP_INFO(node->get_logger(), "Created service for stopping data recording..");
 
     if (!simulation_only_)
     {
         param_string = node_->declare_parameter<std::string>("robot_ip", "127.0.0.1");
-        param_double = node_->declare_parameter<double>("rtde_frequency", 100.0);
+        param_double = node_->declare_parameter<double>("robot_state_receiver.rtde_frequency", 100.0);
         receiver_interface_ = std::make_shared<ur_rtde::RTDEReceiveInterface>(param_string, param_double);
 
-        param_string = node_->declare_parameter<std::string>("real_joint_states_topic", "/real_joint_states");
+        param_string = node_->declare_parameter<std::string>("robot_state_receiver.real_joint_states_topic", "/real_joint_states");
         real_joint_state_pub_ = node_->create_publisher<JointStateMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
         RCLCPP_INFO(node->get_logger(), "Created real joint state publisher..");
 
         get_io_state_service_ = node->create_service<IOStateServiceType>("get_io_state", std::bind(&robot_state_receiver::get_io_state_cb, this, _1, _2));
         RCLCPP_INFO(node->get_logger(), "Created service for getting the io state..");
 
-        param_string = node_->declare_parameter<std::string>("io_state_topic", "/io_state");
+        param_string = node_->declare_parameter<std::string>("robot_state_receiver.io_state_topic", "/io_state");
         io_state_pub_ = node_->create_publisher<IOStateMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
         RCLCPP_INFO(node->get_logger(), "Created io state publisher..");
 
         get_tcp_pose_service_ = node->create_service<TcpPoseServiceType>("get_tcp_pose", std::bind(&robot_state_receiver::get_tcp_pose_cb, this, _1, _2));
         RCLCPP_INFO(node->get_logger(), "Created service for getting the TCP pose..");
 
-        param_string = node_->declare_parameter<std::string>("tcp_pose_topic", "/tcp_pose");
+        param_string = node_->declare_parameter<std::string>("robot_state_receiver.tcp_pose_topic", "/tcp_pose");
         tcp_pose_pub_ = node_->create_publisher<PoseMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
         RCLCPP_INFO(node->get_logger(), "Created robot TCP pose publisher..");
 
         get_wrench_service_ = node->create_service<WrenchServiceType>("get_wrench", std::bind(&robot_state_receiver::get_wrench_cb, this, _1, _2));
         RCLCPP_INFO(node->get_logger(), "Created service for getting wrench..");
 
-        param_string = node_->declare_parameter<std::string>("wrench_topic", "/wrench");
+        param_string = node_->declare_parameter<std::string>("robot_state_receiver.wrench_topic", "/wrench");
         force_sensor_pub_ = node_->create_publisher<WrenchMsg>(param_string, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
         RCLCPP_INFO(node->get_logger(), "Created wrench publisher..");
     }
@@ -79,7 +79,7 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
         last_fake_joint_state_msg_.header.frame_id = "world";
         last_fake_joint_state_msg_.header.stamp = node_->now();
         last_fake_joint_state_msg_.name = joint_names_;
-        last_fake_joint_state_msg_.position = node_->declare_parameter<std::vector<double>>("simulation_start_robot_state", std::vector<double>{0., 0., 0., 0., 0., 0.});
+        last_fake_joint_state_msg_.position = node_->declare_parameter<std::vector<double>>("robot_state_receiver.simulation_start_robot_state", std::vector<double>{0., 0., 0., 0., 0., 0.});
         last_fake_joint_state_msg_.effort = std::vector<double>(joint_names_.size(), 0);
         last_fake_joint_state_msg_.velocity = std::vector<double>(joint_names_.size(), 0);
     }
@@ -87,7 +87,7 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
     get_joint_state_service_ = node->create_service<JointStateServiceType>("get_joint_state", std::bind(&robot_state_receiver::get_joint_state_cb, this, _1, _2));
     RCLCPP_INFO(node->get_logger(), "Created service for getting the joint state..");
 
-    param_string = node_->declare_parameter<std::string>("camera_calibration_file", "");
+    param_string = node_->declare_parameter<std::string>("robot_state_receiver.camera_calibration_file", "");
 
     std::ifstream ifile(param_string.c_str());
 
@@ -121,8 +121,8 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
         }
 
         Eigen::Affine3d camera_offset;
-        auto position_offset = node_->declare_parameter<std::vector<double>>("position_offset", std::vector<double>{0., 0., 0.});
-        auto orientation_offset = node_->declare_parameter<std::vector<double>>("orientation_offset", std::vector<double>{0., 0., 0.});
+        auto position_offset = node_->declare_parameter<std::vector<double>>("robot_state_receiver.position_offset", std::vector<double>{0., 0., 0.});
+        auto orientation_offset = node_->declare_parameter<std::vector<double>>("robot_state_receiver.orientation_offset", std::vector<double>{0., 0., 0.});
         camera_offset.translation() << position_offset[0], position_offset[1], position_offset[2];
 
         Eigen::AngleAxisd rollAngle(orientation_offset[0], Eigen::Vector3d::UnitX());
@@ -134,8 +134,8 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
 
         mat = camera_offset * mat;
 
-        calibrated_camera_tf_.header.frame_id = node_->declare_parameter<std::string>("calibrated_camera_parent_tf_name", "camera_aligned_tool_link");
-        calibrated_camera_tf_.child_frame_id = node_->declare_parameter<std::string>("calibrated_camera_tf_name", "camera_color_optical_frame");
+        calibrated_camera_tf_.header.frame_id = node_->declare_parameter<std::string>("robot_state_receiver.calibrated_camera_parent_tf_name", "camera_aligned_tool_link");
+        calibrated_camera_tf_.child_frame_id = node_->declare_parameter<std::string>("robot_state_receiver.calibrated_camera_tf_name", "camera_color_optical_frame");
         calibrated_camera_tf_.transform.translation.x = mat.translation().x();
         calibrated_camera_tf_.transform.translation.y = mat.translation().y();
         calibrated_camera_tf_.transform.translation.z = mat.translation().z();
@@ -152,7 +152,7 @@ robot_state_receiver::robot_state_receiver(rclcpp::Node::SharedPtr node) : node_
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    param_int = node_->declare_parameter<int>("data_receiving_frequency", 100);
+    param_int = node_->declare_parameter<int>("robot_state_receiver.data_receiving_frequency", 100);
     int freq = (1000.0 / (double)param_int);
     timer_ = node_->create_wall_timer(
         std::chrono::milliseconds(freq),
