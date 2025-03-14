@@ -52,10 +52,7 @@ int main(int argc, char **argv)
     }
 
     auto load_custom_control_script = true;
-
 #ifndef UR_RTDE_LOAD_CUSTOM_CONTROL_SCRIPT_PATCH
-    if (load_custom_control_script)
-        RCLCPP_WARN(node->get_logger(), "The loading of custom control script is requested but the patch to UR_RTDE was not applied. Please apply the patch (see documentation).");
     load_custom_control_script = false;
 #endif
 
