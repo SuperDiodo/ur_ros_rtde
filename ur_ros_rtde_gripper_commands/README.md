@@ -8,7 +8,7 @@ In this package are provided implementation examples of commands that can be use
 
 0. **Install and configure the OnRobot SG**
 1. Install the OnRobot URCap using the robot teach pendant.
-2. Clone `ur_rtde`, apply the [patch](../ur_ros_rtde/config/ur_rtde_7bd8f3481877cc9aeec2cbb2b109326b6bbab282.patch) provided in `ur_ros_rtde` and then install the cloned software.
+2. Clone `ur_rtde`, apply the [patch](../ur_ros_rtde/config/ur_rtde_5221785.patch) provided in `ur_ros_rtde` and then install the cloned software.
     ```bash
     # optional: remove ur_rtde binaries if installed with apt
     sudo apt remove --purge librtde librtde-dev
