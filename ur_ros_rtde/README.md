@@ -7,10 +7,7 @@
 - `moveit_config_pkg`: MoveIt! ROS2 config package generated with MoveIt! setup assistant and `urdf_file_name`. (Optional)
 - `launch_moveit`: if enabled, `/launch/move_group.launch.py` launch file contained in `moveit_config_pkg` is launched.
 - `launch_rviz`: if enabled, an instance of RViz will be launched along with the robot state receiver node. If also `launch_moveit` is enabled, instead of launching an instance of RViz, `/launch/moveit_rviz.launch.py` contained in `moveit_config_pkg` is launched.
-- `simulation_only`: if enabled, fake data are made available through topics and services. It can be used to simulate a trajectory in non-realistic environment.
-- `rtde_frequency`: frequency (hz) at which `ur_rtde` will work.
-- `data_receiving_frequency`: frequency (hz) at which the robot state receiver will update robot informations as the robot pose, configuration, etc.
-- `simulation_start_robot_state`: if `simulation_only` it's `true`, this will be the initial robot configuration.
+- `simulation_only`: if enabled, fake data are made available through topics and services. It can be used to simulate a trajectory in non-realistic environment. Joint state messages to can be published to `/fake_joint_states` to change the robot state.
 
 #### Robot state published in topics and accessible with services
 - [JointState](https://docs.ros.org/en/humble/p/geometry_msgs/msg/JointState.html): `/joint_states`, `/ur_ros_rtde/get_joint_state` 
