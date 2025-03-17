@@ -6,6 +6,7 @@ Add-on devices such as robot grippers often require software extensions, called 
 
 In this package are provided implementation examples of commands that can be used to interact with an OnRobot soft gripper. To control the gripper it is mandatory to:
 
+0. **Install and configure the OnRobot SG**
 1. Install the OnRobot URCap using the robot teach pendant.
 2. Clone `ur_rtde`, apply the [patch](../ur_ros_rtde/config/ur_rtde_7bd8f3481877cc9aeec2cbb2b109326b6bbab282.patch) provided in `ur_ros_rtde` and then install the cloned software.
     ```bash
@@ -13,6 +14,7 @@ In this package are provided implementation examples of commands that can be use
     sudo apt remove --purge librtde librtde-dev
 
     # clone ur_rtde
+    cd <desired_path>
     git clone https://gitlab.com/sdurobotics/ur_rtde.git
     cd ur_rtde
     git submodule update --init --recursive

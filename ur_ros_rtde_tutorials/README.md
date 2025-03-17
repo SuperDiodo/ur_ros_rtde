@@ -73,6 +73,7 @@ When setting `launch_rviz` to `True` a robot state publisher node is started whi
     1. Add a robot model: `Displays\Add\RobotModel`
     2. Set `world` in `Fixed Frame`
     3. Set `/robot_description` in `RobotModel\Description Topic`
+    4. Click on `File\Save config` to save the actual configuration of RViz
 
 
 #### Activate robot commands
@@ -136,14 +137,14 @@ This example only requires an instance of the *CommandServer* and can be execute
 
   ```bash
   # type in a new terminal
-  ros2 run ur_ros_rtde trajectory_execution
+  ros2 run ur_ros_rtde_tutorials trajectory_execution
   ```
 
 #### Adding new commands to `ur_ros_rtde`
 
 In `ur_ros_rtde/src/base_commands` and `ur_ros_rtde/src/base_dashboard_commands` there is the implementation of several commands which are exposed as ROS2 plugins. When launching *CommandServer* and *DashboardServer* these plugins are automatically loaded.
 
-In `ur_ros_rtde_gripper_commands` and `ur_ros_rtde_tutorials` are provided examples of how new commands can be implemented as ROS2 plugins. For instance, in this package there is an example of implementation of the `MoveDownUntilForce` plugin, which allow to move the robot towards the ground until a force is detected. 
+In this package and [ur_ros_rtde_gripper_commands](../ur_ros_rtde_gripper_commands) and are provided examples of how new commands can be implemented as ROS2 plugins. For instance, in this package there is an example of implementation of the `MoveDownUntilForce` plugin, which allow to move the robot towards the ground until a force is detected. 
 
 If `ur_ros_rtde_tutorials` is compiled, the plugin will be loaded automatically by the *CommandServer*. The command can be sent to the robot sending an empty goal to the corresponding action server:
 
