@@ -5,7 +5,7 @@
   <version>0.0.0</version>
   <description>Actions, Services and Messages for ur_ros_rtde package utilization</description>
   <maintainer email="alessio.saccuti@unipr.it">Alessio Saccuti</maintainer>
-  <license>Apache-2.0</license>
+  <license>BSD-3-Clause</license>
   
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>

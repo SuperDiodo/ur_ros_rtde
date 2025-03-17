@@ -5,7 +5,7 @@
   <version>0.0.0</version>
   <description>simple clients for calling ros2 actions and servers</description>
   <maintainer email="alessio.saccuti@unipr.it">Alessio Saccuti</maintainer>
-  <license>Apache-2.0</license>
+  <license>BSD-3-Clause</license>
  
  
  <build_depend>ament_cmake</build_depend>
