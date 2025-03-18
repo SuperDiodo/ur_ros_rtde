@@ -160,7 +160,7 @@ If `ur_ros_rtde_tutorials` is compiled, the plugin will be loaded automatically 
     ```
 
    <p align="center">
-    <img src="../images/dual_force.gif" style="width: 40%; height: auto;">
+    <img src="../images/dual_force.gif" style="width: 50%; height: auto;">
     </p>
 
 ---
