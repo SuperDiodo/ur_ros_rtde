@@ -133,12 +133,12 @@ In this tutorial package are provided 3 examples which can be used to move the r
     <img src="../images/dual_traj.gif">
   </p>
 
-This example only requires an instance of the *CommandServer* and can be executed as shown below:
+    This example only requires an instance of the *CommandServer* and can be executed as shown below:
 
-  ```bash
-  # type in a new terminal
-  ros2 run ur_ros_rtde_tutorials trajectory_execution
-  ```
+    ```bash
+    # type in a new terminal
+    ros2 run ur_ros_rtde_tutorials trajectory_execution
+    ```
 
 #### Adding new commands to `ur_ros_rtde`
 
@@ -160,14 +160,10 @@ If `ur_ros_rtde_tutorials` is compiled, the plugin will be loaded automatically 
     ```
 
    <p align="center">
-    <img src="../images/dual_force.gif" style="width: 70%; height: auto;">
+    <img src="../images/dual_force.gif" style="width: 40%; height: auto;">
     </p>
 
 ---
 ## Integration of `ur_ros_rtde` and MoveIt!
 
-Setting `launch_moveit = True` in `ur_ros_rtde/launch/robot_state_receiver.launch.py`, several files from the associated MoveIt! configuration packages are automatically launched. 
-
-We recommend to use [`moveit_planning`](https://github.com/SuperDiodo/moveit_planning.git), a C++ library which includes utility functions for using ROS2 MoveIt! planning framework.
-
-In `moveit_planning` instructions on the setup and its usage can be found.
+Setting `launch_moveit = True` in `ur_ros_rtde/launch/robot_state_receiver.launch.py`, several files from the associated MoveIt! configuration package are automatically launched.

@@ -21,7 +21,11 @@ ur_ros_rtde/config/camera_calibration.txt
 ur_ros_rtde/config/camera_calibration_agritech.txt
 
 # ur_ros_rtde_msgs
-.svn/
+ur_ros_rtde_msgs/.svn/
 
 # simple_ur10e_description
 simple_ur10e_description/urdf/ur10e.urdf
+
+# ur_ros_rtde_tutorials
+ur_ros_rtde_tutorials/.svn/
+
