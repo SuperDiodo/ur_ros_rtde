@@ -37,6 +37,19 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 # Export plugin description file
 pluginlib_export_plugin_description_file(ur_ros_rtde_gripper_commands plugins.xml)
 
+# Generate OnRobot preamble headerfile
+set(SOURCE_FILE "${CMAKE_CURRENT_LIST_DIR}/config/OnRobotSG_preamble.script")
+set(HEADER_FILE "${CMAKE_CURRENT_LIST_DIR}/src/OnRobotSG_preamble.h")
+
+add_custom_command(
+  OUTPUT "${HEADER_FILE}"
+  COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_LIST_DIR}/generate_preamble_str.cmake"
+  DEPENDS "${SOURCE_FILE}"
+  VERBATIM
+)
+
+add_custom_target(generate_preamble DEPENDS "${HEADER_FILE}")
+
 # Library: gripper_control_script_extension_lib
 file(GLOB EXTENSION_SOURCES "src/*.cpp")
 add_library(gripper_control_script_extension_lib SHARED ${EXTENSION_SOURCES})
@@ -45,6 +58,7 @@ target_include_directories(gripper_control_script_extension_lib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 ament_target_dependencies(gripper_control_script_extension_lib rclcpp_action pluginlib geometry_msgs)
+add_dependencies(gripper_control_script_extension_lib generate_preamble)
 
 # Link typesupport to the library
 rosidl_get_typesupport_target(typesupport_target_cpp ${PROJECT_NAME} "rosidl_typesupport_cpp")
