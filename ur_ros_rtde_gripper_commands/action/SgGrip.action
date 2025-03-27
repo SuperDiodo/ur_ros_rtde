@@ -1,6 +1,6 @@
 # request
 float64 target_width
-bool gentle_grip
+bool gentle_grip True
 int32 tool_index 0 
 bool blocking True
 bool depth_compensation False

@@ -27,7 +27,6 @@ void execute_function_impl(
   const auto goal = goal_handle->get_goal();
 
   // busy wait for termination of other commands
-  // busy wait for termination of this command
   while (rtde_receive->getOutputDoubleRegister(COMMAND_STATUS_REGISTER) != EXT_CMD_IDLE)
     rclcpp::sleep_for(std::chrono::milliseconds(100));
 
@@ -38,10 +37,8 @@ void execute_function_impl(
   rtde_io->setInputIntRegister(INPUT_INTEGER_REG_4, goal->blocking);
   rtde_io->setInputIntRegister(INPUT_INTEGER_REG_5, goal->depth_compensation);
 
-  rtde_io->setInputDoubleRegister(COMMAND_REQUEST_REGISTER, extension_id);
-
   // lock command
-   // activate command with the corresponding ID
+  rtde_io->setInputDoubleRegister(COMMAND_REQUEST_REGISTER, extension_id);
 
   // busy wait for termination of this command
   while (rtde_receive->getOutputDoubleRegister(COMMAND_STATUS_REGISTER) != EXT_CMD_DONE)
@@ -79,21 +76,11 @@ static control_script_extension generate_modifications()
     URCap method: sg_grip(target_width,gentle_grip,tool_index=0,blocking=True,depth_compensation=False)
   */
 
-  /*
-  control_script_extension ext(PLUGIN_NAME, id);
-  ext.add_method("textmsg", "\"sg_grip\"");
-  ext.add_method("sg_grip", register_arg(INPUT_INTEGER_REG_1, REGISTER_TYPE_INT),
-                 register_arg(INPUT_INTEGER_REG_2, REGISTER_TYPE_BOOL),
-                 register_arg(INPUT_INTEGER_REG_3, REGISTER_TYPE_INT),
-                 register_arg(INPUT_INTEGER_REG_4, REGISTER_TYPE_BOOL),
-                 register_arg(INPUT_INTEGER_REG_5, REGISTER_TYPE_BOOL));
-  */
-
   control_script_extension ext;
   ext.set_name("sg_grip");
   const std::string body = R"(
   textmsg("sg_grip")
-  sg_grip($in18i, True)
+  sg_grip($in18i,$in19i==1,$in20i,$in21i==1,$in22i==1)
   $out19f=get_sg_Width()
   )";
 
