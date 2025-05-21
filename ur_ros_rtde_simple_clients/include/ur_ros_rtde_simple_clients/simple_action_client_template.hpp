@@ -330,9 +330,6 @@ public:
   template <class T>
   bool cancel_async_goal(const std::string &action_server_name, async_goal_state<T> &goal_state)
   {
-    // Create a client pointer to interact with the action server
-    goal_state.client_ptr = rclcpp_action::create_client<T>(node_, action_server_name); // TODO: do we need to create again the client? 
-
     // Wait for the action server to be available
     while (!goal_state.client_ptr->wait_for_action_server(1s))
     {
@@ -368,25 +365,6 @@ public:
     }
 
     auto cancel_result = cancel_future.get();  // cancel_result is a CancelResponse::SharedPtr
-    // CancelResponse  is dedined as ... 
-    // see: https://docs.ros2.org/latest/api/rclcpp_action/classrclcpp__action_1_1Client.html#a5a201101029b06b3edcfdaf8297ed749
-    // if (cancel_result->return_code == rclcpp_action::CancelResponse::ACCEPT)
-    /*if (cancel_result->return_code == rclcpp_action::ResultCode::ERROR_NONE)
-    {
-      if (verbose_)
-      {
-        RCLCPP_INFO(node_->get_logger(), "Cancel request accepted by action server %s", action_server_name.c_str());
-      }
-      return true;
-    }
-    else
-    {
-      if (verbose_)
-      {
-        RCLCPP_ERROR(node_->get_logger(), "Cancel request rejected by action server %s", action_server_name.c_str());
-      }
-      return false;
-    }*/
     return true; 
   }
 
