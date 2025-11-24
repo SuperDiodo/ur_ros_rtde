@@ -7,6 +7,20 @@ This project is currently under development, with ongoing updates and enhancemen
 
 **Use this software with caution. The developers are not responsible for any damages or injuries that may result from its use.**
 
+If you use this repository in your research, please cite it as:
+
+```
+@misc{saccuti2025ros2interfaceuniversalrobots,
+      title={A ROS2 Interface for Universal Robots Collaborative Manipulators Based on ur_rtde}, 
+      author={Alessio Saccuti and Riccardo Monica and Jacopo Aleotti},
+      year={2025},
+      eprint={2511.17237},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2511.17237}, 
+}
+```
+
 ---
 
 ## Capabilities of `ur_ros_rtde`
