@@ -8,7 +8,10 @@ In this package are provided implementation examples of commands that can be use
 
 0. **Install and configure the OnRobot SG**
 1. Install the OnRobot URCap using the robot teach pendant.
-2. Clone `ur_rtde`, apply the [patch](../ur_ros_rtde/config/ur_rtde_5221785.patch) provided in `ur_ros_rtde` and then install the cloned software.
+2. Clone `ur_rtde` and apply one of the patches provided in [`ur_ros_rtde/config`](../ur_ros_rtde/config/). Then install the package.  
+Two patches are available, each identified by a commit hash. They are functionally equivalent but differ slightly to match different versions of the `ur_rtde` repository.  
+Patches for newer versions can be easily derived from the existing ones.
+
     ```bash
     # optional: remove ur_rtde binaries if installed with apt
     sudo apt remove --purge librtde librtde-dev
@@ -37,4 +40,12 @@ In this package are provided implementation examples of commands that can be use
 
 4. Remove the plugins implemented in this package from the blacklist in the example [launch file](../ur_ros_rtde/launch/command_server.launch.py). 
 
-If everything was set up as indicated above, the *CommandServer* will be able to discover and load the plugins related to OnRobot commands. Each command, as done for the other plugins, will be exposed as an action server. The command server can be launched and commands can be requested to the robot as shown in the [tutorials](../ur_ros_rtde_tutorials/).
+If everything was set up as indicated above, the *CommandServer* will be able to discover and load the plugins related to OnRobot commands.  
+Each command, as done for the other plugins, will be exposed as an action server.   
+The command server can be launched and commands can be requested to the robot as shown in the [tutorials](../ur_ros_rtde_tutorials/).
+
+**Example**: control the SG gripper by setting its width using `sg_grip`:
+```bash
+# Run in a new terminal
+ros2 action send_goal /ur_ros_rtde/sg_grip_command ur_ros_rtde_gripper_commands/action/SgGrip "{target_width: 30}"
+```
