@@ -11,3 +11,4 @@ bool result
 ---
 # feedback
 uint64 reached_waypoint
+float64 error

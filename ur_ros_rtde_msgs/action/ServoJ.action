@@ -1,0 +1,10 @@
+# request
+float64[] joint_positions
+float64 time
+float64 lookahead_time
+int32 gain
+---
+#result
+bool result
+---
+#feedback
