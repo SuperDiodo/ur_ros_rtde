@@ -159,6 +159,23 @@ ament_export_targets(
   export_${PROJECT_NAME}
 )
 
+# Install evaluate jitter test
+add_executable(evaluate_jitter src/tests/evaluate_jitter.cpp)
+ament_target_dependencies(evaluate_jitter ${dependencies})
+target_link_libraries(evaluate_jitter ${Eigen3_LIBRARIES} ur_rtde::rtde)
+
+install(TARGETS
+evaluate_jitter
+DESTINATION lib/${PROJECT_NAME})
+
+add_executable(evaluate_jitter_plugins src/tests/evaluate_jitter_plugins.cpp)
+ament_target_dependencies(evaluate_jitter_plugins ${dependencies})
+target_link_libraries(evaluate_jitter_plugins ${Eigen3_LIBRARIES} ur_rtde::rtde)
+
+install(TARGETS
+evaluate_jitter_plugins
+DESTINATION lib/${PROJECT_NAME})
+
 # Install launch, config, include folders
 
 install(DIRECTORY

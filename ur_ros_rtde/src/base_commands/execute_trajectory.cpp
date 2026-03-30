@@ -12,10 +12,11 @@ using action_type = ur_ros_rtde_msgs::action::ExecuteTrajectory;
 using namespace std::chrono_literals;
 using namespace std::chrono;
 
-inline std::shared_ptr<action_type::Feedback> create_feedback(const uint64_t reached_waypoint)
+inline std::shared_ptr<action_type::Feedback> create_feedback(const uint64_t reached_waypoint, const double error)
 {
   auto feedback = std::make_shared<action_type::Feedback>();
   feedback->reached_waypoint = reached_waypoint;
+  feedback->error = error;
   return feedback;
 }
 
@@ -115,7 +116,7 @@ void execute_function_impl(
   rtde_control->moveJ(Array6dToVector(start_p.p), 0.2, 0.2);
   rtde_control->stopJ();
 
-  goal_handle->publish_feedback(create_feedback(0));
+  goal_handle->publish_feedback(create_feedback(0, 0.0));
   uint64_t feedback_prev_waypoint_id = 1;
 
   /* init logging variables */
@@ -220,8 +221,8 @@ void execute_function_impl(
       {
         rtde_control->waitPeriod(t_start);
         t_end = std::chrono::steady_clock::now();
-        elapsed_time += std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count() / 1000.0;
-        if ((double)elapsed_time >= servo_j_timestep)
+        elapsed_time += std::chrono::duration<double>(t_end - t_start).count();
+        if (elapsed_time >= servo_j_timestep)
           break;
         t_start = rtde_control->initPeriod();
       }
@@ -264,14 +265,6 @@ void execute_function_impl(
       file << p.comments[0]->waypoint << "\n";
     }
 
-    /* publish feedback */
-    const uint64_t feedback_waypoint_id = prev_p.comments[0]->waypoint;
-    while (feedback_prev_waypoint_id < feedback_waypoint_id)
-    {
-      goal_handle->publish_feedback(create_feedback(feedback_prev_waypoint_id));
-      feedback_prev_waypoint_id++;
-    }
-
     /* check if robot is deviating too much from trajectory (distance between actual robot state and where it should be)*/
     Eigen::VectorXd desired_conf = Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(prev_p.p.data(), prev_p.p.size());
     Eigen::VectorXd actual_conf = Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(q.data(), q.size());
@@ -286,6 +279,14 @@ void execute_function_impl(
                   max_allowed_deviation, deviation_old_waypoint);
       result->result ? goal_handle->succeed(result) : goal_handle->abort(result);
       return;
+    }
+
+    /* publish feedback */
+    const uint64_t feedback_waypoint_id = prev_p.comments[0]->waypoint;
+    while (feedback_prev_waypoint_id < feedback_waypoint_id)
+    {
+      goal_handle->publish_feedback(create_feedback(feedback_prev_waypoint_id, deviation_old_waypoint));
+      feedback_prev_waypoint_id++;
     }
 
     /* check if robot has reached the end of trajectory */
@@ -332,7 +333,17 @@ void execute_function_impl(
       control_loop_repetitions++;
     }
     else{
-      //if(sample_idx == num_trajectory_samples - 2) std::cout << deviation_old_waypoint << std::endl;
+      double speed_diff = actual_speed - expected_speed;
+      double speed_th = std::max(goal->deceleration, 1.0) * servo_j_timestep;
+      if (delayed_waypoint_idx < last_sample_idx && speed_diff > speed_th)
+      {
+        RCLCPP_INFO(node->get_logger(), "Sample %d robot is moving too fast (current %f, expected %f, diff %f, threshold %f rad/s), "
+                                        "sending again this sample to slow down",
+                    delayed_waypoint_idx, float(actual_speed), float(expected_speed), float(speed_diff), float(speed_th));
+        sample_idx--;
+        delayed_waypoint_idx--;
+        control_loop_repetitions++;
+      }
     }
 
     auto cycle_time = (node->now() - start_cycle_time).seconds();

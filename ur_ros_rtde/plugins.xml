@@ -47,6 +47,12 @@
   <class type="SendCustomScript" base_class_type="ur_ros_rtde_command">
     <description>SendCustomScript command.</description>
   </class>
+  <class type="ServoJ" base_class_type="ur_ros_rtde_command">
+    <description>ServoJ command.</description>
+  </class>
+  <class type="ServoStop" base_class_type="ur_ros_rtde_command">
+    <description>ServoStop command.</description>
+  </class>
 </library>
 
 
@@ -119,6 +125,9 @@
   </class>
   <class type="Shutdown" base_class_type="ur_ros_rtde_dashboard_command">
     <description>Shutdown dashboard command.</description>
+  </class>
+  <class type="Stop" base_class_type="ur_ros_rtde_dashboard_command">
+    <description>Stop dashboard command.</description>
   </class>
   <class type="UnlockProtectiveStop" base_class_type="ur_ros_rtde_dashboard_command">
     <description>UnlockProtectiveStop dashboard command.</description>

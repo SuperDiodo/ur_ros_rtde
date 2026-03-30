@@ -1,0 +1,44 @@
+diff --git a/include/ur_rtde/rtde_control_interface.h b/include/ur_rtde/rtde_control_interface.h
+index f0005ba..6e3a72b 100644
+--- a/include/ur_rtde/rtde_control_interface.h
++++ b/include/ur_rtde/rtde_control_interface.h
+@@ -13,6 +13,8 @@
+ #include <map>
+ #include <tuple>
+ 
++#define UR_RTDE_LOAD_CUSTOM_CONTROL_SCRIPT_PATCH
++
+ #define MAJOR_VERSION 0
+ #define MINOR_VERSION 1
+ #define CB3_MAJOR_VERSION 3
+@@ -261,7 +263,8 @@ class RTDEControlInterface
+    */
+   RTDE_EXPORT explicit RTDEControlInterface(std::string hostname, double frequency = -1.0,
+                                             uint16_t flags = FLAGS_DEFAULT, int ur_cap_port = 50002,
+-                                            int rt_priority = RT_PRIORITY_UNDEFINED);
++                                            int rt_priority = RT_PRIORITY_UNDEFINED,
++                                            const std::string &custom_script_str = "");
+ 
+   RTDE_EXPORT virtual ~RTDEControlInterface();
+ 
+diff --git a/src/rtde_control_interface.cpp b/src/rtde_control_interface.cpp
+index 2435ee6..32f4544 100644
+--- a/src/rtde_control_interface.cpp
++++ b/src/rtde_control_interface.cpp
+@@ -38,7 +38,7 @@ static void verifyValueIsWithin(const double &value, const double &min, const do
+ }
+ 
+ RTDEControlInterface::RTDEControlInterface(std::string hostname, double frequency, uint16_t flags, int ur_cap_port,
+-                                           int rt_priority)
++                                           int rt_priority, const std::string &custom_script_str)
+     : hostname_(std::move(hostname)),
+       frequency_(frequency),
+       upload_script_(flags & FLAG_UPLOAD_SCRIPT),
+@@ -135,6 +135,7 @@ RTDEControlInterface::RTDEControlInterface(std::string hostname, double frequenc
+ 
+   // Create a connection to the script server
+   script_client_ = std::make_shared<ScriptClient>(hostname_, versions_.major, versions_.minor);
++  script_client_->setScriptFile(custom_script_str);
+   if (versions_.major < 10)
+   {
+     // For PolyScopeX we do not connect with the script client.
