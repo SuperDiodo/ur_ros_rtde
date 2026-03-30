@@ -19,7 +19,7 @@ You can easily interact with ROS2 services and actions using header files provid
 
 **Ensure that the `ur_ros_rtde_tutorials` package is compiled.**
 
-#### Retrieve robot state
+#### **Example A**: Retrieve robot state
 
 To retrieve the robot state *RobotStateReceiver* must be used.
 
@@ -40,7 +40,7 @@ At this point, the robot state can be accessed using topics and services.
     ros2 topic echo /joint_states
     ```
 
-#### Visualize the robot in RViz
+#### **Example B**: Visualize the robot in RViz
 
 *RobotStateReceiver* does not require any URDF of the robot, but URDF files are required to visualize the robot in tools like RViz. If a ROS2 description package of a UR robot is already available, skip to step 2 and use that package instead of `simple_ur10e_description`.
 
@@ -75,8 +75,7 @@ When setting `launch_rviz` to `True` a robot state publisher node is started whi
     3. Set `/robot_description` in `RobotModel\Description Topic`
     4. Click on `File\Save config` to save the actual configuration of RViz
 
-
-#### Activate robot commands
+#### **Example C**: move the robot by using the available action servers
 
 In `ur_ros_rtde` commands are defined as plugins and exposed as action servers. To make available these action servers the *CommandServer* must be started:
 
@@ -95,9 +94,7 @@ In `ur_ros_rtde` commands are defined as plugins and exposed as action servers. 
 
 The file `command_server.launch.py` can also be used to define a blacklist of plugins which must not be loaded. By default, the plugins implemented in `ur_ros_rtde_gripper_commands` are disabled, since they rely on the presence of specific hardware.
 
-#### Move the robot
-
-In this tutorial package are provided 3 examples which can be used to move the robot:
+In this tutorial package are provided examples which can be used to move the robot:
 
 - **Execute linear movements**:
   The robot performs small linear movements along the X-axis printing the robot pose after each movement. The robot state is retrieved with services exposed by *RobotStateReceiver*. Commands are sent to the robot with the *CommandServer*.
@@ -140,7 +137,7 @@ In this tutorial package are provided 3 examples which can be used to move the r
     ros2 run ur_ros_rtde_tutorials trajectory_execution
     ```
 
-#### Adding new commands to `ur_ros_rtde`
+#### **Example D**: Adding new commands to `ur_ros_rtde`
 
 In `ur_ros_rtde/src/base_commands` and `ur_ros_rtde/src/base_dashboard_commands` there is the implementation of several commands which are exposed as ROS2 plugins. When launching *CommandServer* and *DashboardServer* these plugins are automatically loaded.
 

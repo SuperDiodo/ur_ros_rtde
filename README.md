@@ -24,6 +24,7 @@ If you use this repository in your research, please cite it as:
 ---
 
 ## Capabilities of `ur_ros_rtde`
+
 - Reception of various data (joint states, forces, torques, etc.) which is made available in topics and as services.
 - High-level URScript commands are exposed as action servers (*MoveL*, *MoveJ*, etc.)
 - Composite commands, such as trajectory execution or moving the robot linearly until a force is detected, are also exposed as action servers.
@@ -37,19 +38,20 @@ If you use this repository in your research, please cite it as:
 ---
 
 ## Contents of `ur_ros_rtde`
-- **`ur_ros_rtde`**) core implementation of the driver. It includes the implementation of the following ROS2 nodes:
+- [**`ur_ros_rtde`**] core implementation of the driver. It includes the implementation of the following ROS2 nodes:
   - *RobotStateReceiver*: retrieves the robot state.
   - *CommandServer*: exposes high-level URScript commands as actions.
   - *DashboardServer*: exposes commands related to *Dashboard Client* interface.
-- **`ur_ros_rtde_msgs`**) ROS2 package containing the definition of:
+- [**`ur_ros_rtde_msgs`**] ROS2 package containing the definition of:
   - messages and services advertised by *RobotStateReceiver*
   - actions exposed by *CommandServer*
   - actions exposed by *DashboardServer*
-- **`ur_ros_rtde_simple_clients`**) ROS2 package containing the definition of basic service and action clients.
-- **`ur_ros_rtde_gripper_commands`**) Example of ROS2 package that extends the `ur_ros_rtde` features by defining new plugins for managing external hardware devices. 
-- **`simple_ur10e_description`**: example of a ROS2 description package containing meshes, xacro and urdf files. The package is a simplified version of [this repository](https://github.com/UniversalRobots/Universal_Robots_ROS2_Description), but specific for UR10e.
-- **`simple_ur10e_moveit_config`**) example of MoveIt! configuration package generated with `moveit_setup_assistant` for the UR10e robot described in `simple_ur10e_description`.
-- **`ur_ros_rtde_tutorials`**) Package containing usage examples.
+- [**`ur_ros_rtde_simple_clients`**] ROS2 package containing the definition of basic service and action clients.
+- [**`ur_ros_rtde_gripper_commands`**] Example of ROS2 package that extends the `ur_ros_rtde` features by defining new plugins for managing external hardware devices. 
+- [**`simple_ur10e_description`**] example of a ROS2 description package containing meshes, xacro and urdf files. The package is a simplified version of [this repository](https://github.com/UniversalRobots/Universal_Robots_ROS2_Description), but specific for UR10e.
+- [**`simple_ur10e_moveit_config`**] example of MoveIt! configuration package generated with `moveit_setup_assistant` for the UR10e robot described in `simple_ur10e_description`.
+- [**`ur_ros_rtde_tutorials`**] Package containing usage examples.
+- [**`docs`**] Documentation.
 
 ---
 ## Setup `ur_ros_rtde`
@@ -115,10 +117,8 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 ## Use the driver
 
-In `ur_ros_rtde` ROS2 package are provided simple launch files which can be configured based on the needs:
-- `ur_ros_rtde/launch/robot_state_receiver.launch.py`: launch the *RobotStateReceiver* node.
-- `ur_ros_rtde/launch/command_server.launch.py`: launch the *CommandServer* node.
-- `ur_ros_rtde/launch/dashboard_server.launch.py`: launch the *DashboardServer* node.
+To better explain the working principles behind `ur_ros_rtde`, the documentation is available [here](docs).  
+Additionally, examples of usage are provided:
 
-Tutorials on how use these files and run examples are provided in [ur_ros_rtde_tutorials](ur_ros_rtde_tutorials).
-In [ur_ros_rtde_gripper_commands](ur_ros_rtde_gripper_commands) there is the implementation of commands that can be used to control an OnRobot soft gripper.
+- [ur_ros_rtde_tutorials](ur_ros_rtde_tutorials): Tutorials on how to use the driver, including receiving data from the robot and controlling its motion.
+- [ur_ros_rtde_gripper_commands](ur_ros_rtde_gripper_commands): Tutorials on how to add new plugins to the driver and extend the `ur_rtde` control script to control an OnRobot soft gripper.

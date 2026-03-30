@@ -35,6 +35,6 @@ In this package are provided implementation examples of commands that can be use
     colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to ur_ros_rtde_gripper_commands
     ```
 
-4. Remove the plugins implemented in this package from the blacklist in the [launch file](../ur_ros_rtde/launch/command_server.launch.py). 
+4. Remove the plugins implemented in this package from the blacklist in the example [launch file](../ur_ros_rtde/launch/command_server.launch.py). 
 
 If everything was set up as indicated above, the *CommandServer* will be able to discover and load the plugins related to OnRobot commands. Each command, as done for the other plugins, will be exposed as an action server. The command server can be launched and commands can be requested to the robot as shown in the [tutorials](../ur_ros_rtde_tutorials/).
