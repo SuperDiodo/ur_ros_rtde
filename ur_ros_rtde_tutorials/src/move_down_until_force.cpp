@@ -19,6 +19,8 @@ void execute_function_impl(
   // ---------- PLUGIN BEHAVIOUR ----------
   (void)rtde_io;
   (void)dashboard_client;
+
+  const auto goal = goal_handle->get_goal();
   auto result = std::make_shared<action_type::Result>();
   check_control_interface_connection(rtde_control, node);
   check_receive_interface_connection(rtde_receive, node);
@@ -26,18 +28,19 @@ void execute_function_impl(
 
   rtde_control->zeroFtSensor();
   auto goal_pose = rtde_receive->getActualTCPPose();
-  goal_pose[2] -= 1.0;
-  rtde_control->moveL(goal_pose, 0.1, 0.1, true);
+  goal_pose[2] -= goal->z_distance;
+  rtde_control->moveL(goal_pose, goal->speed, goal->acceleration, true);
+  auto sleep_ms = std::chrono::milliseconds(goal->sleep_ms);
 
   while (true)
   {
     auto f = rtde_receive->getActualTCPForce();
-    if (abs(f[2]) > 20.0)
+    if (abs(f[2]) > goal->force_th)
     {
       rtde_control->stopJ(5.0);
       break;
     }
-    rclcpp::sleep_for(2ms);
+    rclcpp::sleep_for(sleep_ms);
   }
 
   result->result = true;

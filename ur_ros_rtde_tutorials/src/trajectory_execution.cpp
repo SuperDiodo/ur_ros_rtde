@@ -4,6 +4,11 @@
 /* INCLUDE ACTIONS TO USE */
 #include <ur_ros_rtde_msgs/action/execute_trajectory.hpp>
 
+void feedback_callback(const std::shared_ptr<const ur_ros_rtde_msgs::action::ExecuteTrajectory::Feedback> feedback)
+{
+  std::cout << "Reached waypoint " << feedback->reached_waypoint << " with error " << feedback->error << " rad" << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
@@ -46,7 +51,8 @@ int main(int argc, char *argv[])
         goal_msg.trajectory.push_back(joint_vector);
     }
 
-    action_client.send_goal<ur_ros_rtde_msgs::action::ExecuteTrajectory>("ur_ros_rtde/execute_trajectory_command", goal_msg);
+    ur_ros_rtde_msgs::action::ExecuteTrajectory::Result unused_result;
+    action_client.send_goal<ur_ros_rtde_msgs::action::ExecuteTrajectory>("ur_ros_rtde/execute_trajectory_command", goal_msg, unused_result, &feedback_callback);
 
     rclcpp::shutdown();
     return 0;

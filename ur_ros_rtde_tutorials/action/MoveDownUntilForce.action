@@ -1,4 +1,9 @@
 # request
+float64 force_th 20.0
+float64 z_distance 1.0
+float64 speed 0.1
+float64 acceleration 0.1
+int32 sleep_ms 2
 ---
 # result
 bool result
