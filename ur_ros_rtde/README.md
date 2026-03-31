@@ -1,66 +1,52 @@
-# Robot State Receiver
+# **Run `ur_ros_rtde` ROS 2 Nodes**
 
-#### ROS parameters
-- `robot_ip`: the robot ip address.
-- `robot_description_package`: ROS2 package containing the URDF of the robot.
-- `urdf_file_name`: relative path of the robot URDF in `robot_description_package` package.
-- `moveit_config_pkg`: MoveIt! ROS2 config package generated with MoveIt! setup assistant and `urdf_file_name`. (Optional)
-- `launch_moveit`: if enabled, `/launch/move_group.launch.py` launch file contained in `moveit_config_pkg` is launched.
-- `launch_rviz`: if enabled, an instance of RViz will be launched along with the robot state receiver node. If also `launch_moveit` is enabled, instead of launching an instance of RViz, `/launch/moveit_rviz.launch.py` contained in `moveit_config_pkg` is launched.
-- `simulation_only`: if enabled, fake data are made available through topics and services. It can be used to simulate a trajectory in non-realistic environment. Joint state messages to can be published to `/fake_joint_states` to change the robot state.
+The `ur_ros_rtde` ROS 2 package provides several nodes with configurable ROS parameters to allow flexible setups.
 
-#### Robot state published in topics and accessible with services
-- [JointState](https://docs.ros.org/en/humble/p/geometry_msgs/msg/JointState.html): `/joint_states`, `/ur_ros_rtde/get_joint_state` 
-- [Pose](https://docs.ros.org/en/humble/p/geometry_msgs/msg/Pose.html): `/tcp_pose`, `/ur_ros_rtde/get_tcp_pose`
-- [WrenchStamped](https://docs.ros.org/en/humble/p/geometry_msgs/msg/WrenchStamped.html): `/wrench`, `/ur_ros_rtde/get_wrench`
-- [IOState](../ur_ros_rtde_msgs/msg/IOState.msg): `/io_state`, `/ur_ros_rtde/get_io_state`
+Example launch files are provided for running different nodes:
+
+- `robot_state_receiver.launch.py` → runs `robot_state_receiver_node`
+- `command_server.launch.py` → runs `command_server_node`
+- `dashboard_server.launch.py` → runs `dashboard_server_node`
+
+Below are the configurable parameters for each launch file.
 
 ---
 
-# Command Server
+## 🛠️ Parameters for `robot_state_receiver.launch.py`
 
-#### ROS parameters
-- `robot_ip`: the robot ip address.
-- `command_server.plugins_blacklist`: a list of plugin names to ignore.
-
-#### Commands list
-
-- `send_custom_script_command`: send custom UrScript to the robot.
-
-- `set_digital_pin_command`: set a digital output pin to a specific state.
-
-- `set_payload_command`: set the payload of the robot.
-
-- `set_speed_slider_command`: set the speed slider value of the teach pendant.
-
-- `set_freedrive_command`: activate the freedrive mode of the robot. **free_axes** is an integer vector to activate or deactivate robot movements on X,Y,Z,Roll,Pitch,Yaw axes (1 is activated, 0 is deactivated).
-
-- `reset_force_torque_sensor_command`: reset the FT sensor.
-
-- `move_l_command`: move the robot with linear movements in the tool space.
-
-- `move_j_command`: move the robot with linear movements in the joint space.
-
-- `move_l_relative_command`: relative movement, linear in the tool space, of the robot with respect to the actual pose.
-
-- `move_j_relative_command`: relative movement, linear in the joint space, of the robot with respect to the actual configuration.
-
-- `move_until_contact_command`: move the TCP along a given direction until a contact is detected and then retract the robot at the last non-colliding configuration. It is possible to define a **direction** of the contact to detect. If direction is set to all -1 values all possible contacts are detected.
-
-- `move_until_force_command`: move the TCP given XYZ offset until a force is detected. It is possible to define a **direction** of the force and a minimum value.
-
-- `move_until_torque_command`: move the TCP given XYZ offset until a torque is detected. It is possible to define a **direction** of the torque and a minimum value.
-
-- `execute_path_command`: execute a path composed of several waypoints. Each waypoint can be a MoveL (l or L) or MoveJ (j or J) movement. When passing multiple waypoint of the same type it is possible to use the **blend** values (see *Blend Radii* in this [guide](https://www.universal-robots.com/articles/ur/robot-care-maintenance/important-deployment-points/)). They allows to smooth the transition between two MoveX movements.
-
-- `execute_trajectory_command`: execute a trajectory composed of at least two robot configurations. The robot will perform a first `move_l` towards the first robot configuration and then start the execution. Deceleration is used to stop at the end of trajectory. Acceleration and speed parameters are used to estimate a speed profile of the robot and interpolate waypoints.
+| Parameter | Description |
+|----------|------------|
+| `robot_ip` | IP address of the robot |
+| `robot_description_package` | ROS 2 package containing robot description (meshes, URDF, etc.) |
+| `urdf_file_name` | Relative path to the URDF file within the description package |
+| `moveit_config_pkg` | MoveIt configuration package |
+| `launch_rviz` | Launch RViz for visualization |
+| `launch_moveit` | Launch MoveIt |
+| `simulation_only` | Enable fake robot mode (no real robot required). This will: <br> • Generate fake joint states <br> • Disable force/torque data <br> • Avoid requiring a real robot connection |
 
 ---
 
-## Dashboard commands
+## 🛠️ Configuration for `command_server.launch.py`
 
-#### ROS parameters
-- `robot_ip`: the robot ip address.
+```python
+robot_ip = ""  # Robot IP (e.g. 127.0.0.1)
+command_server_plugins_blacklist = []
+```
 
-#### Commands list
-Command descriptions are straightforward given their names.
+| Parameter | Description |
+|----------|------------|
+| `robot_ip` | IP address of the robot |
+| `command_server_plugins_blacklist` | List of plugins to disable in the command server |
+
+---
+
+## 🛠️ Configuration for `dashboard_server.launch.py`
+
+```python
+robot_ip = ""  # Robot IP (e.g. 127.0.0.1)
+dashboard_server_plugins_blacklist = []
+```
+
+| Parameter | Description |
+|----------|------------|
+| `robot_ip` | IP address of the robot |

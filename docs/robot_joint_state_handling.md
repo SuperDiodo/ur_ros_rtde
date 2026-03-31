@@ -5,10 +5,8 @@ We introduced an **internal joint state monitoring system** that:
 - publishes it to the standard `/joint_states` topic  
 
 Publishing to `/joint_states` enables:
-- ✅ Visualization in **RViz** (e.g., via a robot state publisher)  
-- ✅ Seamless integration with **MoveIt!**, which uses the same topic to update its internal robot representation  
-
----
+- Visualization in **RViz** (e.g., via a robot state publisher)  
+- Robot state information reusable with other software (e.g., MoveIt!)
 
 ## Configurable Data Sources
 
@@ -25,22 +23,13 @@ However, the **source of this data can be dynamically configured**:
   - Useful when no physical robot is available (e.g., to visualize a simulated trajectory)  
   - The robot state is updated by publishing to `/fake_joint_states`  
 
----
 
 ## Dynamic Source Switching
 
-In some scenarios, it is necessary to **dynamically change the source** of the `/joint_states` topic.
+In some scenarios, it is necessary to **dynamically change the source** of the `/joint_states` topic.  
+**Example:** Visualize a trajectory before actually executing it.   
 
-**Example:**  
-Planning a trajectory in MoveIt! assuming the robot is already in a *future configuration*.
-
-This can be achieved using the service:
-
-```
-/publish_fake_joint_states
-```
-
-- Accepts a **boolean goal**:
+This can be achieved using the service: `/publish_fake_joint_states`, which accepts a **boolean goal**:
   - `true` → use `/fake_joint_states`  
   - `false` → use `/real_joint_states`  
 

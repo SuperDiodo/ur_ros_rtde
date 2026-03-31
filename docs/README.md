@@ -17,4 +17,7 @@ Each document is briefly described below.
   Guide on how to extend the default `ur_rtde` control script (e.g., to interact with external URCaps installed on the robot).
 
 - **[Robot Joint State Handling](robot_joint_state_handling.md)**  
-  Explanation of how `ur_ros_rtde` manages robot configuration in ROS 2, with compatibility for the MoveIt! motion planning framework.
+  Explanation of how `ur_ros_rtde` manages robot configuration in ROS 2.
+
+- **[Integration with MoveIt!](integration_with_moveit.md)**  
+  Explanation of how `ur_ros_rtde` can be used with MoveIt!.
