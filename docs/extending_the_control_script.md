@@ -64,8 +64,8 @@ The only two exceptions are:
 
     | Type   | Direction | Address | Name                     | Description          |
     |--------|-----------|---------|--------------------------|----------------------|
-    | INT    | Input     | 18      | COMMAND_REQUEST_REGISTER | Command request      |
-    | INT    | Output    | 18      | COMMAND_STATUS_REGISTER  | Command status       |
+    | DOUBLE    | Input     | 18      | COMMAND_REQUEST_REGISTER | Command request      |
+    | DOUBLE    | Output    | 18      | COMMAND_STATUS_REGISTER  | Command status       |
     | INT    | Input     | 18      | INPUT_INTEGER_REG_1      | Integer input 1      |
     | INT    | Input     | 19      | INPUT_INTEGER_REG_2      | Integer input 2      |
     | INT    | Input     | 20      | INPUT_INTEGER_REG_3      | Integer input 3      |
