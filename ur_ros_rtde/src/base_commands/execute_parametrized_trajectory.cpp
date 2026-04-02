@@ -69,7 +69,7 @@ void execute_function_impl(
   }
   if (goal->joint_positions.size() != goal->joint_velocities.size() || goal->joint_positions.size() != goal->times.size())
   {
-    RCLCPP_ERROR(node->get_logger(), "Terminating execution, inconsistent size of joint positions (%d), velocities (%d) and times (%d)", (int) goal->joint_positions.size(), (int) goal->joint_velocities.size(), (int) goal->times.size());
+    RCLCPP_ERROR(node->get_logger(), "Terminating execution, inconsistent size of joint positions (%d), velocities (%d) and times (%d)", (int)goal->joint_positions.size(), (int)goal->joint_velocities.size(), (int)goal->times.size());
     result->result = false;
     goal_handle->abort(result);
     return;
@@ -88,7 +88,7 @@ void execute_function_impl(
     goal_handle->abort(result);
     return;
   }
-  for (size_t p_idx = 1; p_idx < goal->times.size()-1; p_idx++)
+  for (size_t p_idx = 1; p_idx < goal->times.size() - 1; p_idx++)
   {
     auto temp_servo_j_timestep = goal->times[p_idx] - goal->times[p_idx - 1];
     if (abs(temp_servo_j_timestep - servo_j_timestep) > 1.0e-3)
@@ -344,8 +344,16 @@ void execute_function_impl(
     }
 
     auto cycle_time = (node->now() - start_cycle_time).seconds();
-    if (cycle_time > 2 * servo_j_timestep)
-      RCLCPP_WARN(node->get_logger(), "Control loop cycle time is twice as desired (%f s instead of %f s), try increasing <servo_j_timestep> ros param", cycle_time, servo_j_timestep);
+    if (cycle_time > 1.2 * servo_j_timestep)
+    {
+      RCLCPP_WARN(node->get_logger(), "Control loop cycle time too high (%f s instead of %f s), terminating trajectory execution..", cycle_time, servo_j_timestep);
+      result->result = false;
+      break;
+    }
+    else if (cycle_time > 1.1 * servo_j_timestep)
+    {
+      RCLCPP_WARN(node->get_logger(), "Control loop cycle time is longer than desired (%f s instead of %f s), try increasing <servo_j_timestep> ros param", cycle_time, servo_j_timestep);
+    }
   }
   /* close log file */
   if (save_log)
