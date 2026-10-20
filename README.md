@@ -10,15 +10,16 @@ This project is currently under development, with ongoing updates and enhancemen
 If you use this repository in your research, please cite it as:
 
 ```
-@misc{saccuti2025ros2interfaceuniversalrobots,
-      title={A ROS2 Interface for Universal Robots Collaborative Manipulators Based on ur_rtde}, 
-      author={Alessio Saccuti and Riccardo Monica and Jacopo Aleotti},
-      year={2025},
-      eprint={2511.17237},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO},
-      url={https://arxiv.org/abs/2511.17237}, 
-}
+@ARTICLE{11741258,
+  author={Saccuti, Alessio and Monica, Riccardo and Aleotti, Jacopo},
+  journal={IEEE Robotics and Automation Practice}, 
+  title={A ROS 2 Interface for Universal Robots Collaborative Manipulators Based on ur_rtde}, 
+  year={2026},
+  volume={},
+  number={},
+  pages={1-6},
+  keywords={Robots;Force;Joints;Registers;Timing;Conferences;Codes;Libraries;Licenses;Radio access networks;Software Architecture for Robotic and Automation;Collaborative Robots in Manufacturing},
+  doi={10.1109/RAP.2026.3745027}}
 ```
 
 ---
